@@ -1,0 +1,3 @@
+[submodule "libs/externals/matchMedia"]
+	path = libs/externals/matchMedia
+	url = git://github.com/paulirish/matchMedia.js.git
