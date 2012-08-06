@@ -8,6 +8,9 @@ In addition, BrowserMap is capable of detecting the device groups a client belon
 * `browser` - desktop browsers capable of CSS 3D transitions (another Modernizr test is used for this feature)
 * `oldBrowser` - less modern desktop browsers
 
+## Demo
+A small demo is available at [http://raducotescu.github.com/browsermap/index.html](http://raducotescu.github.com/browsermap/index.html).
+
 ## Features
 
 * extensible probing mechanism;
