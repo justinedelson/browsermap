@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Browsermap client-side detection prototype</title>
+<style type="text/css">
+body,h1,h2,h3,h4 {
+    font-size:17px;
+    font-family:'HelveticaNeue-Light',Helvetica,Arial,sans-serif;
+    font-weight:300;
+}
+h1 {
+    font-size:300%;
+    font-weight:bold;
+}
+h2 {
+    font-size:125%;
+    font-weight:bold;
+}
+h3 {
+    font-size:110%;
+    font-weight:bold;
+}
+#result {
+    font-size:200%;
+    margin:0.5em;
+    padding: 0.5em;
+}
+.debug {
+    color:gray;
+}
+
+#result {
+    /* gradient, from http://www.puremango.co.uk/2010/04/css-gradient-background/ */
+    background: yellow;
+
+    /* Mozilla: */
+    background: -moz-linear-gradient(left, yellow, #00FF00);
+
+    /* Chrome, Safari:*/
+    background: -webkit-gradient(linear,
+                left top, right top, from(yellow), to(#00FF00));
+    /* MSIE */
+    filter: progid:DXImageTransform.Microsoft.Gradient(
+                StartColorStr='yellow', EndColorStr='#00FF00', GradientType=1);
+
+    /* rounder corners */
+    -moz-border-radius: 1em;
+    border-radius: 1em;
+}
+
+#result span {
+    color:blue;
+    font-weight:bold;
+}
+#result .note {
+    font-size:75%
+}
+#result .note span {
+    color:black;
+    font-weight:normal;
+    font-style:italic;
+}
+
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="text/javascript" src="https://raw.github.com/raducotescu/browsermap/master/libs/browsermap/bmaputil.js"></script>
+<script type="text/javascript" src="https://raw.github.com/raducotescu/browsermap/master/libs/browsermap/bmap.js"></script>
+<script type="text/javascript" src="https://raw.github.com/raducotescu/browsermap/master/libs/externals/modernizr/modernizr.custom.js"></script>
+<script type="text/javascript" src="https://raw.github.com/paulirish/matchMedia.js/master/matchMedia.js"></script>
+<script type="text/javascript" src="https://raw.github.com/raducotescu/browsermap/master/libs/browsermap/probes.js"></script>
+<script type="text/javascript" src="https://raw.github.com/raducotescu/browsermap/master/libs/browsermap/devicegroups.js"></script>
+</head>
+
+<body>
+
+<div id="result">
+<p>
+The browsermap client-side detection prototype thinks your
+device type is <span id="devicegroup.description">UNIDENTIFIED??</span>,
+which is part of the <span id="devicegroup.name">NOT FOUND??</span> device group.
+</p>
+
+<div class="note">
+<p>
+This is based on the following functions returning true:
+<br/>
+<code><span id="devicegroup.functions">NO EXPR??</span></code>
+<br/>
+<p>
+We currently detect the following device groups:
+<br/>
+<span id="devicegroups"></span>
+</p>
+</div>
+
+
+</div>
+
+<p>
+This is a prototype of pure client-side device detection.
+The goal is to group client devices into categories (desktop, tablet, ...) to optimize
+websites.
+<p>
+<p>
+At the core we use a minimal version of <a href="http://modernizr.com/">Modernizr</a>, which tests the client browser to detect
+a number of features. We then combine those values in a simple way to build our device groups.
+</p>
+<p>
+If the above device type and group doesn't match what you expect for your device, please let us know,
+by creating an issue at <a href="https://github.com/raducotescu/browsermap/issues">https://github.com/raducotescu/browsermap/issues</a>
+</p>
+
+<a href="/index.html">This is a test link</a>
+
+<h3 class="debug">Debugging info</h3>
+<pre class="debug">
+<script language="javascript">
+// Populate test page
+BrowserMap.forwardRequest();
+var matchedGroups = BrowserMap.getMatchedDeviceGroups();
+var matchedGroupsDescription = []
+var matchedGroupsNames = []
+var testFunctions = []
+for (var g in matchedGroups) {
+    matchedGroupsDescription.push(matchedGroups[g].description);
+    matchedGroupsNames.push(matchedGroups[g].name);
+    testFunctions.push(matchedGroups[g].testFunction);
+}
+
+var dgs = [];
+var deviceGrps = BrowserMap.getDeviceGroups();
+for (var g in deviceGrps) {
+    dgs.push(deviceGrps[g].name);
+}
+
+var element;
+element = document.getElementById('devicegroup.description');
+element.innerHTML = matchedGroupsDescription.join(', ')
+element = document.getElementById('devicegroup.name');
+element.innerHTML = matchedGroupsNames.join(', ');
+element = document.getElementById('devicegroup.functions');
+element.innerHTML = testFunctions.join('<br />');
+element = document.getElementById('devicegroups');
+element.innerHTML = dgs.join(', ');
+
+
+
+BrowserMap.debug('window.innerWidth');
+BrowserMap.debug('window.innerHeight');
+
+BrowserMap.debug('Modernizr.touch');
+BrowserMap.debug('Modernizr.csstransforms3d');
+
+BrowserMap.debug('BrowserMap.probe("devicePixelRatio")');
+BrowserMap.debug('screen.width');
+BrowserMap.debug('screen.height');
+BrowserMap.debug('BrowserMap.probe("clientWidth")');
+BrowserMap.debug('document.documentElement.clientHeight');
+BrowserMap.debug('BrowserMap.probe("orientation")');
+BrowserMap.debug('BrowserMap.probe("portrait")');
+BrowserMap.debug('BrowserMap.probe("landscape")');
+
+for(var i in BrowserMap.debuginfo) {
+  document.write(i);
+  document.write("=");
+  document.write(BrowserMap.debuginfo[i]);
+  document.write("\n");
+}
+</script>
+</pre>
+</body>
