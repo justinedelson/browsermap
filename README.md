@@ -1,4 +1,4 @@
-BrowserMap is a JavaScript browser features detection library. It uses modular probes and code snippets that detect specific features of the client in order to help classify and optimize page rendering or provide the client with alternate website versions.
+BrowserMap is a JavaScript browser features detection library. It uses modular probes and code snippets that detect specific features of the client; these are then used to detect the client's type and to optimize page rendering or to provide the client with alternate website versions.
 
 In addition, BrowserMap is capable of detecting the device groups a client belongs to. The following groups are provided by default:
 
