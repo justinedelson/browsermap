@@ -74,7 +74,7 @@ BrowserMapUtil = {
             if (!cookieName || !this.cookieExists(cookieName)) { return; }
             var oExpDate = new Date();
             oExpDate.setDate(oExpDate.getDate() - 1);
-            document.cookie = escape(cookieName) + '=; expires=' + oExpDate.toGMTString() + '; path=/';
+            document.cookie = escape(cookieName) + '=; expires=' + oExpDate.toGMTString() + ';';
         },
 
         'cookieExists' : function (cookieName) { return (new RegExp('(?:^|;\\s*)' + escape(cookieName).replace(/[\-\.\+\*]/g, '\\$&') + '\\s*\\=')).test(document.cookie); },
@@ -100,11 +100,27 @@ BrowserMapUtil = {
          */
         'getFileExtension' : function (file) {
             var extension = '';
-            if (file && file != '') {
+            if (file && file != '' && file.indexOf('.') != -1) {
                 extension = file.substring(file.lastIndexOf('.'), file.length);
             }
             return extension;
-        }
+        },
+
+        /**
+         * Analyses if a file has selectors in its file name and returns the file name (file part + extension) without the selectors.
+         *
+         * @param Type:String file - the file from which to remove the selectors
+         * @retuns Type:String a string containing the file with the removed selectors
+         */
+        'removeSelectorsFromFile' : function(file) {
+            if (file && file != '') {
+                var tokens = file.split('.');
+                if (tokens.length > 2) {
+                    return tokens[0] + '.' + tokens[tokens.length - 1];
+                }
+            }
+            return file;
+        }        
     },
 
     'url' : {
@@ -183,8 +199,12 @@ BrowserMapUtil = {
          */
         'getFileFromURL' : function getFileFromURL(url) {
             var file = '';
-            if (url && url != '' && url[url.lastIndexOf('/') + 1] != '?') {
-                file = url.substring(url.lastIndexOf('/') + 1, url.length);
+            if (url && url != '') {
+                url = url.replace('https://', '');
+                url = url.replace('http://', '');
+                if (url.lastIndexOf('/') != -1 && url[url.lastIndexOf('/') + 1] != '?') {
+                    file = url.substring(url.lastIndexOf('/') + 1, url.length);
+                }
             }
             return file;
         },
@@ -193,14 +213,71 @@ BrowserMapUtil = {
          * Retrieves the folder path from a URL.
          *
          * @param Type:String url - the URL from which the path is extracted
-         * @returns Type:String a String containing the folder path; empty string if the URL is null or empty
+         * @returns Type:String a String containing the folder path; empty string if the URL is null or empty or it does not end with "/"
          */
         'getFolderPathFromURL' : function (url) {
             var folderPath = '';
-            if (url && url != '' && url.lastIndexOf('/') != -1) {
-                folderPath = url.substring(0, url.lastIndexOf('/') + 1);
+            var tmpURL = url;
+            tmpURL = tmpURL.replace('https://', '');
+            tmpURL = tmpURL.replace('http://', '');
+            if (tmpURL && tmpURL != '' && tmpURL.lastIndexOf('/') != -1) {
+                folderPath = tmpURL.substring(0, tmpURL.lastIndexOf('/') + 1);
+                folderPath = url.substring(0, url.indexOf(folderPath)) + folderPath;
             }
             return folderPath;
+        },
+
+        /**
+         * Analyses a resource (the file part from a URL) and retrieves its selectors. The selectors will be returned in an Array. An empty
+         * Array will be returned if no selectors have been found.
+         *
+         * @param Type:String url - the URL from which the selectors have to be extracted
+         * @returns Type:Array - an Array with the selectors; the Array will be empty if no selectors have been found
+         */
+        'getSelectorsFromURL' : function(url) {
+            var selectors = [];
+            if (url && url != '') {
+                url = url.replace('https://', '');
+                url = url.replace('http://', '');
+                // ditch the parameters when retrieving selectors
+                if (url.lastIndexOf('?') != -1) {
+                    url = url.substring(0, url.lastIndexOf('?'));
+                }
+                if (url.lastIndexOf('/') != -1 ) {
+                    url = url.substring(url.lastIndexOf('/') + 1, url.length);
+                    var selectorCandidates = url.split('.');
+                    if (selectorCandidates.length > 2) {
+                        for (var i = 1; i < selectorCandidates.length - 1; i++) {
+                            selectors.push(selectorCandidates[i]);
+                        }
+                    }
+                }
+            }
+            return selectors;
+        },  
+
+        /**
+         * Adds selectors to the supplied URL and returns the modified URL.
+         *
+         * @param Type:String url - the URL to which selectors need to be added
+         * @param Type:Array selectors - an Array with the selectors that have to be applied to the current URL
+         * @returns Type:String a String containing the new URL
+         */
+        'addSelectorsToURL' : function(url, selectors) {
+            var file = this.getFileFromURL(url);
+            file = BrowserMapUtil.file.removeSelectorsFromFile(file);
+            if (file && file != '') {
+                var path = this.getFolderPathFromURL(url);
+                var extension = BrowserMapUtil.file.getFileExtension(file);
+                file = file.replace(extension, '');
+                var newURL = path + file;
+                if (selectors.length > 0)
+                    newURL += '.';
+                newURL += selectors.join('.');
+                newURL += extension;
+                return newURL;
+            }
+            return url;
         }
     }
 };

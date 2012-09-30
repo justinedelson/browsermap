@@ -4,7 +4,7 @@
  *      Felix Oghină (foghin@adobe.com)
  *
  * The BrowserMap object is used to identify the client's device group, based
- * on javascript detection tests ("probes") that find out which features 
+ * on javascript detection tests ("probes") that find out which features
  * the client supports.
  */
 window.BrowserMap = (function() {
@@ -16,70 +16,6 @@ window.BrowserMap = (function() {
     var enableForwardingWhenCookiesDisabled = false;
     var matchRun = false;
     var languageOverride = null;
-
-    /**
-     * Analyses a resource (the file part from a URL) and retrieves its selectors. The selectors will be returned in an Array. An empty
-     * Array will be returned if no selectors have been found.
-     *
-     * @param Type:String url - the URL from which the selectors have to be extracted
-     * @returns Type:Array - an Array with the selectors; the Array will be empty if no selectors have been found
-     */
-    function getSelectorsFromResource(resource) {
-        var selectors = [];
-        if (resource && resource != '') {
-            // ditch the parameters when retrieving selectors
-            if (resource.lastIndexOf('?') != -1) {
-                resource = resource.substring(0, resource.lastIndexOf('?'));
-            }
-            var selectorCandidates = resource.split('.');
-            if (selectorCandidates.length > 2) {
-                for (var i = 1; i < selectorCandidates.length - 1; i++) {
-                    selectors.push(selectorCandidates[i]);
-                }
-            }
-        }
-        return selectors;
-    }
-
-    /**
-     * Adds selectors to the current URL and returns the modified URL.
-     *
-     * @param Type:Array selectors - an Array with the selectors that have to be applied to the current URL
-     * @returns Type:String a String containing the new URL
-     */
-    function addSelectorsToCurrentURL(selectors) {
-        var url = window.location.href;
-        var file = BrowserMapUtil.url.getFileFromURL(url);
-        file = removeSelectorsFromFile(file);
-        if (file && file != '') {
-            var path = BrowserMapUtil.url.getFolderPathFromURL(url);
-            var extension = BrowserMapUtil.file.getFileExtension(file);
-            file = file.replace(extension, '');
-            var newURL = path + file;
-            if (selectors.length > 0)
-                newURL += '.';
-            newURL += selectors.join('.');
-            newURL += extension;
-            return newURL;
-        }
-        return url;
-    }
-
-    /**
-     * Analyses if a file has selectors in its file name and returns the file name (file part + extension) without the selectors.
-     *
-     * @param Type:String file - the file from which to remove the selectors
-     * @retuns Type:String a string containing the file with the removed selectors
-     */
-    function removeSelectorsFromFile(file) {
-        if (file && file != '') {
-            var tokens = file.split('.');
-            if (tokens.length > 2) {
-                return tokens[0] + '.' + tokens[tokens.length - 1];
-            }
-        }
-        return file;
-    }
 
     // the default BrowserMap object
     var BrowserMap = {};
@@ -160,6 +96,9 @@ window.BrowserMap = (function() {
      * filter is applied to alternate sites that have matched at least one device group. If the alternate site matches the filter, the total
      * score of the alternate site will increase by 1. The alternate site's object attributes are id, href, hreflang and media.
      *
+     * @param Type:Array deviceGroups - an array containing the names of the device groups for which to get the best alternate link
+     * @param Type:Function filter - a callback function that acts as a filter and which must return a boolean; the callback will receive a
+     *      hash object representing an alternate site with the following attributes: "id", "href", "hreflang", "media"
      * @returns Type:String the alternate link that matches the most device groups matched by the client
      */
     BrowserMap.getAlternateSite = function (deviceGroups, filter) {
@@ -222,8 +161,11 @@ window.BrowserMap = (function() {
      * with the same probeName will not run the probe again. You can use BrowserMap.clearProbeCache() to avoid that.
      *
      * @param Type:String probeName - the name of the requested probe
+     * @returns Type:Object the result of the probe, or null if the probe has not been defined
      */
     BrowserMap.probe = function (probeName) {
+        if (probes[probeName] == null)
+            return null;
         if (!probeCache.hasOwnProperty(probeName)) {
             probeCache[probeName] = probes[probeName]();
         }
@@ -260,7 +202,7 @@ window.BrowserMap = (function() {
             }
         }
         if (!newURL) {
-            newURL = addSelectorsToCurrentURL(urlSelectors);
+            newURL = BrowserMapUtil.url.addSelectorsToURL(currentURL, urlSelectors);
         }
         if (newURL) {
             var parameters = BrowserMapUtil.url.getURLParametersString(currentURL);
@@ -304,7 +246,7 @@ window.BrowserMap = (function() {
                     parameters = parameters.replace('?' + overrideParameter, '');
                 }
             }
-            currentURL += parameters;            
+            currentURL += parameters;
         }
         window.location = currentURL;
     }
@@ -537,7 +479,7 @@ window.BrowserMap = (function() {
 
     BrowserMap.getCookieName = function () {
         return cookieName;
-    }    
+    }
 
     return BrowserMap;
 
