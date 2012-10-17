@@ -1,1 +1,1 @@
-This branch represents the demo pages for [BrowserMap](https://github.com/raducotescu/browsermap "BrowserMap").
+For the source code please check [BrowserMap](https://github.com/raducotescu/browsermap "BrowserMap").
