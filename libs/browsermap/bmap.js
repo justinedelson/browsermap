@@ -19,8 +19,6 @@ window.BrowserMap = (function() {
 
     // the default BrowserMap object
     var BrowserMap = {};
-    // Android 4.x phones in landscape view use 42 pixels for displaying the "soft buttons"
-    BrowserMap.THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING = 42;
     var deviceGroups = {};
     var matchedDeviceGroups = {};
 
@@ -39,6 +37,9 @@ window.BrowserMap = (function() {
     var probes = { };
     var probeCache = { };
     var siteVersions = { };
+
+    // Android 4.x phones in landscape view use 42 pixels for displaying the "soft buttons"
+    BrowserMap.THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING = 42;
 
     /**
      * Initialises BrowserMap with a configuration object.
