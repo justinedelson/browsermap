@@ -8,19 +8,24 @@
  * the client supports.
  */
 window.BrowserMap = (function() {
+    "use strict";
 
-    var cookiePrefix = 'BMAP_';
-    var deviceGroupCookieName = 'device';
-    var deviceOverrideParameter = 'device';
-    var languageOverrideParameter = 'language';
-    var enableForwardingWhenCookiesDisabled = false;
-    var matchRun = false;
-    var languageOverride = null;
+    var cookiePrefix = 'BMAP_',
+        deviceGroupCookieName = 'device',
+        deviceOverrideParameter = 'device',
+        languageOverrideParameter = 'language',
+        enableForwardingWhenCookiesDisabled = false,
+        matchRun = false,
+        languageOverride = null,
 
-    // the default BrowserMap object
-    var BrowserMap = {};
-    var deviceGroups = {};
-    var matchedDeviceGroups = {};
+        // the default BrowserMap object
+        BrowserMap = {},
+        deviceGroups = {},
+        matchedDeviceGroups = {},
+
+        // default BrowserMap probes
+        probes = {},
+        probeCache = {};
 
     BrowserMap.debuginfo = {};
 
@@ -31,12 +36,7 @@ window.BrowserMap = (function() {
      */
     BrowserMap.debug = function debug(expr) {
         BrowserMap.debuginfo[expr] = eval(expr);
-    }
-
-    // default BrowserMap probes
-    var probes = { };
-    var probeCache = { };
-    var siteVersions = { };
+    };
 
     // Android 4.x phones in landscape view use 42 pixels for displaying the "soft buttons"
     BrowserMap.THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING = 42;
@@ -70,7 +70,7 @@ window.BrowserMap = (function() {
         if (config.enableForwardingWhenCookiesDisabled != null) {
             enableForwardingWhenCookiesDisabled = config.enableForwardingWhenCookiesDisabled;
         }
-    }
+    };
 
     /**
      * Returns an Array of the alternate sites by analysing the link elements with rel='alternate' and the media attribute not null or empty.
@@ -78,16 +78,23 @@ window.BrowserMap = (function() {
      * @returns Type:Array an array of alternate sites as hash objects; an empty array if no alternate site is found
      */
     BrowserMap.getAllAlternateSites = function () {
-        var alternateSites = [];
-        var links = document.getElementsByTagName('link');
-        for (var i = 0; i < links.length; i++) {
-            var link = links[i];
-            if (link.rel == 'alternate' && link.media && link.media != '') {
-                alternateSites.push({'id' : link.id, 'href' : link.href, 'hreflang' : link.hreflang, 'media' : link.media});
+        var alternateSites = [],
+            links,
+            i,
+            link,
+            headElement;
+        headElement = document.getElementsByTagName('head');
+        if (headElement.length == 1) {
+            links = headElement[0].getElementsByTagName('link');
+            for (i = 0; i < links.length; i++) {
+                link = links[i];
+                if (link.rel == 'alternate' && link.media && link.media != '') {
+                    alternateSites.push({'id' : link.id, 'href' : link.href, 'hreflang' : link.hreflang, 'media' : link.media});
+                }
             }
         }
         return alternateSites;
-    }
+    };
 
     /**
      * Looks for the best matching alternate site. The primary criterion is the number of matched device groups which also provides the score
@@ -103,20 +110,24 @@ window.BrowserMap = (function() {
      * @returns Type:String the alternate link that matches the most device groups matched by the client
      */
     BrowserMap.getAlternateSite = function (deviceGroups, filter) {
-        var alternateSites = BrowserMap.getAllAlternateSites();
-        var maxLinkScore = 0;
-        var alternateSite = null;
-        var alternateSiteCandidate = null;
-        var scoreForCurrentSite = 0;
-        var currentURL = window.location.href;
-        var currentURLParameters = BrowserMapUtil.url.getURLParametersString(currentURL);
+        var alternateSites = BrowserMap.getAllAlternateSites(),
+            maxLinkScore = 0,
+            alternateSite = null,
+            alternateSiteCandidate = null,
+            scoreForCurrentSite = 0,
+            currentURL = window.location.href,
+            currentURLParameters = BrowserMapUtil.url.getURLParametersString(currentURL),
+            i,
+            j,
+            linkScore,
+            devices;
         if (currentURLParameters && currentURLParameters != '') {
             currentURL = currentURL.substring(0, currentURL.indexOf(currentURLParameters));
         }
-        for (var i = 0; i < alternateSites.length; i++) {
-            var linkScore = 0;
-            var devices = alternateSites[i].media.split(',');
-            for (var j = 0; j < devices.length; j++) {
+        for (i = 0; i < alternateSites.length; i++) {
+            linkScore = 0;
+            devices = alternateSites[i].media.split(',');
+            for (j = 0; j < devices.length; j++) {
                 if (deviceGroups.indexOf(devices[j].trim()) != -1) {
                     linkScore++;
                 }
@@ -139,7 +150,7 @@ window.BrowserMap = (function() {
             alternateSite = alternateSiteCandidate;
         }
         return alternateSite;
-    }
+    };
 
     /**
      * Returns the defined DeviceGroups for this BrowserMap as an array in which the elements are ordered by their ranking property.
@@ -147,15 +158,16 @@ window.BrowserMap = (function() {
      * @returns Type:Array
      */
     BrowserMap.getDeviceGroupsInRankingOrder = function () {
-        var dgs = [];
-        for (var dg in deviceGroups) {
+        var dgs = [],
+            dg;
+        for (dg in deviceGroups) {
             dgs.push(deviceGroups[dg]);
         }
         dgs.sort(function(a, b) {
             return a.ranking - b.ranking;
-        })
+        });
         return dgs;
-    }
+    };
 
     /**
      * Executes a probe that was previously added via addProbe. The result of the probe is cached so a second call
@@ -165,13 +177,14 @@ window.BrowserMap = (function() {
      * @returns Type:Object the result of the probe, or null if the probe has not been defined
      */
     BrowserMap.probe = function (probeName) {
-        if (probes[probeName] == null)
+        if (probes[probeName] == null) {
             return null;
+        }
         if (!probeCache.hasOwnProperty(probeName)) {
             probeCache[probeName] = probes[probeName]();
         }
         return probeCache[probeName];
-    }
+    };
 
     /**
      * Starting from a currentURL, an array of device groups and an array of url selectors returns the alternate URL for the current URL.
@@ -182,18 +195,21 @@ window.BrowserMap = (function() {
      * @returns Type:String the specific URL for the identified device groups
      */
     BrowserMap.getNewURL = function (currentURL, detectedDeviceGroups, urlSelectors) {
-        var newURL = null;
-        var alternateSite = BrowserMap.getAlternateSite(detectedDeviceGroups, function(alternateLink) {
-            if (languageOverride && alternateLink.hreflang && alternateLink.hreflang.lastIndexOf(languageOverride) == 0) {
-                return true;
-            }
-        });
+        var newURL = null,
+            alternateSite = BrowserMap.getAlternateSite(detectedDeviceGroups, function(alternateLink) {
+                if (languageOverride && alternateLink.hreflang && alternateLink.hreflang.lastIndexOf(languageOverride) == 0) {
+                    return true;
+                }
+            }),
+            i,
+            dg,
+            parameters;
         if (alternateSite) {
             newURL = alternateSite.href;
         }
         if (!newURL) {
-            for (var i = 0; i < detectedDeviceGroups.length; i++) {
-                var dg = BrowserMap.getDeviceGroupByName(detectedDeviceGroups[i]);
+            for (i = 0; i < detectedDeviceGroups.length; i++) {
+                dg = BrowserMap.getDeviceGroupByName(detectedDeviceGroups[i]);
                 if (dg) {
                     newURL = dg.url;
                     if (newURL) {
@@ -206,21 +222,26 @@ window.BrowserMap = (function() {
             newURL = BrowserMapUtil.url.addSelectorsToURL(currentURL, urlSelectors);
         }
         if (newURL) {
-            var parameters = BrowserMapUtil.url.getURLParametersString(currentURL);
+            parameters = BrowserMapUtil.url.getURLParametersString(currentURL);
             if (parameters.length > 0) {
-                if (newURL.lastIndexOf(parameters) == -1)
+                if (newURL.lastIndexOf(parameters) == -1) {
                     newURL += parameters;
+                }
             }
         }
         return newURL;
-    }
+    };
 
     /**
      * Removes the device group override, whether it was set up by using the override cookie or just by using the specific device group
      * override parameter.
      */
     BrowserMap.removeOverride = function () {
-        var oCookie = BrowserMapUtil.cookieManager.getCookie('o_' + cookiePrefix + deviceGroupCookieName);
+        var oCookie = BrowserMapUtil.cookieManager.getCookie('o_' + cookiePrefix + deviceGroupCookieName),
+            currentURL = window.location.href,
+            parameters = BrowserMapUtil.url.getURLParametersString(currentURL),
+            overrideParameter,
+            indexOfOverride;
         if (oCookie) {
             BrowserMapUtil.cookieManager.removeCookie(cookiePrefix + deviceGroupCookieName);
             BrowserMapUtil.cookieManager.removeCookie(oCookie.name);
@@ -228,12 +249,10 @@ window.BrowserMap = (function() {
             oCookie.path = '/';
             BrowserMapUtil.cookieManager.setCookie(oCookie);
         }
-        var currentURL = window.location.href;
-        var parameters = BrowserMapUtil.url.getURLParametersString(currentURL);
         if (parameters) {
-            var overrideParameter = deviceOverrideParameter + '=' + BrowserMapUtil.url.getValueForParameter(currentURL, deviceOverrideParameter);
+            overrideParameter = deviceOverrideParameter + '=' + BrowserMapUtil.url.getValueForParameter(currentURL, deviceOverrideParameter);
             currentURL = currentURL.replace(parameters, '');
-            var indexOfOverride = parameters.indexOf(overrideParameter);
+            indexOfOverride = parameters.indexOf(overrideParameter);
             if (indexOfOverride != -1) {
                 if (parameters.length > indexOfOverride + overrideParameter.length) {
                     if (parameters[indexOfOverride - 1] == '?') {
@@ -250,7 +269,7 @@ window.BrowserMap = (function() {
             currentURL += parameters;
         }
         window.location = currentURL;
-    }
+    };
 
     /**
      * Decides if the client should be forwarded to the best matching alternate link based on the following:
@@ -262,13 +281,23 @@ window.BrowserMap = (function() {
      *         maintained.
      */
     BrowserMap.forwardRequest = function () {
-        var currentURL = window.location.href;
-        var deviceOverride = BrowserMapUtil.url.getValueForParameter(currentURL, deviceOverrideParameter);
-        languageOverride = BrowserMapUtil.url.getValueForParameter(currentURL, languageOverrideParameter);
-        var detectedDeviceGroups = [];
-        var urlSelectors = [];
-        var oCookie = BrowserMapUtil.cookieManager.getCookie('o_' + cookiePrefix + deviceGroupCookieName);
-        var cookie = BrowserMapUtil.cookieManager.getCookie(cookiePrefix + deviceGroupCookieName);
+        var currentURL = window.location.href,
+            deviceOverride = BrowserMapUtil.url.getValueForParameter(currentURL, deviceOverrideParameter),
+            detectedDeviceGroups = [],
+            urlSelectors = [],
+            oCookie = BrowserMapUtil.cookieManager.getCookie('o_' + cookiePrefix + deviceGroupCookieName),
+            cookie = BrowserMapUtil.cookieManager.getCookie(cookiePrefix + deviceGroupCookieName),
+            dgs = [],
+            i,
+            g,
+            registeredDeviceGroups,
+            dgName,
+            domain,
+            aTags,
+            url,
+            parameters,
+            newURL;
+        languageOverride = BrowserMapUtil.url.getValueForParameter(currentURL, languageOverrideParameter)
         if (deviceOverride) {
             // override detected
             detectedDeviceGroups = deviceOverride.split(',');
@@ -281,8 +310,7 @@ window.BrowserMap = (function() {
                         oCookie.name = 'o_' + cookiePrefix + deviceGroupCookieName;
                         oCookie.path = '/';
                         BrowserMap.matchDeviceGroups();
-                        var dgs = [];
-                        for (var g in matchedDeviceGroups) {
+                        for (g in matchedDeviceGroups) {
                             dgs.push(matchedDeviceGroups[g].name);
                         }
                         if (deviceOverride != dgs.join(',')) {
@@ -319,13 +347,13 @@ window.BrowserMap = (function() {
              * in either case, the matchDeviceGroups must match the detectedDeviceGroups which can come from the cookie or from the override
              * parameter
              */
-            var registeredDeviceGroups = BrowserMap.getDeviceGroups();
+            registeredDeviceGroups = BrowserMap.getDeviceGroups();
             if (detectedDeviceGroups.length == 0) {
                 detectedDeviceGroups = cookie.value.split(',');
             }
             matchedDeviceGroups = { };
-            for (var i = 0 ; i < detectedDeviceGroups.length; i++) {
-                var dgName = detectedDeviceGroups[i].trim();
+            for (i = 0 ; i < detectedDeviceGroups.length; i++) {
+                dgName = detectedDeviceGroups[i].trim();
                 if (registeredDeviceGroups.hasOwnProperty(dgName)) {
                     if (registeredDeviceGroups[dgName].isSelector) {
                         urlSelectors.push(dgName);
@@ -335,19 +363,19 @@ window.BrowserMap = (function() {
             }
             // add the device override parameter to links using the same domain if a device override was detected
             if (deviceOverride && cookie == null && enableForwardingWhenCookiesDisabled) {
-                var domain = BrowserMapUtil.url.getDomainFromURL(window.location.href);
-                var aTags = document.getElementsByTagName('a');
-                for (var i = 0; i < aTags.length; i++) {
-                    var url = aTags[i].href;
+                domain = BrowserMapUtil.url.getDomainFromURL(window.location.href);
+                aTags = document.getElementsByTagName('a');
+                for (i = 0; i < aTags.length; i++) {
+                    url = aTags[i].href;
                     if (url && url.indexOf(domain) != -1) {
-                        var parameters = BrowserMapUtil.url.getURLParametersString(url);
+                        parameters = BrowserMapUtil.url.getURLParametersString(url);
                         if (parameters) {
                             if (parameters.indexOf(languageOverrideParameter + '=' + deviceOverride) == -1) {
-                                aTags[i].href = url + '&' + deviceOverrideParameter + '=' + deviceOverride
+                                aTags[i].href = url + '&' + deviceOverrideParameter + '=' + deviceOverride;
                             }
                         }
                         else {
-                            aTags[i].href = url + '?' + deviceOverrideParameter + '=' + deviceOverride
+                            aTags[i].href = url + '?' + deviceOverrideParameter + '=' + deviceOverride;
                         }
                     }
                 }
@@ -357,7 +385,7 @@ window.BrowserMap = (function() {
             // no override has been detected, nor a cookie has been set previous to this call
             // perform the match and then set the cookie
             BrowserMap.matchDeviceGroups();
-            for (var g in matchedDeviceGroups) {
+            for (g in matchedDeviceGroups) {
                 if (matchedDeviceGroups[g].isSelector) {
                     urlSelectors.push(matchedDeviceGroups[g].name);
                 }
@@ -369,18 +397,18 @@ window.BrowserMap = (function() {
             cookie.path = '/';
             BrowserMapUtil.cookieManager.setCookie(cookie);
         }
-        var newURL = BrowserMap.getNewURL(currentURL, detectedDeviceGroups, urlSelectors);
+        newURL = BrowserMap.getNewURL(currentURL, detectedDeviceGroups, urlSelectors);
         if (newURL && currentURL != newURL) {
             window.location = newURL;
         }
-    }
+    };
 
     /**
      * Clears the probe result cache.
      */
     BrowserMap.clearProbeCache = function () {
         probeCache = { };
-    }
+    };
 
     /**
      * Adds a DeviceGroup to the BrowserMap object. The key which is used to store the DeviceGroup is represented by its name. The last
@@ -408,7 +436,7 @@ window.BrowserMap = (function() {
             throw new TypeError('Expected a Function for device group ' + deviceGroup.name + ' testFunction');
         }
         deviceGroups[deviceGroup.name] = deviceGroup;
-    }
+    };
 
     /**
      * Adds a probe to BrowserMap and returns the BrowserMap object (useful for chaining). The probe name must be unique. If one tries to
@@ -430,7 +458,7 @@ window.BrowserMap = (function() {
             probes[name] = probe;
         }
         return BrowserMap;
-    }
+    };
 
     /**
      * Returns the DeviceGroups that a client has matched.
@@ -439,7 +467,7 @@ window.BrowserMap = (function() {
      */
     BrowserMap.getMatchedDeviceGroups = function () {
         return matchedDeviceGroups;
-    }
+    };
 
     /**
      * Returns all the DeviceGroups defined for the BrowserMap object.
@@ -448,21 +476,23 @@ window.BrowserMap = (function() {
      */
     BrowserMap.getDeviceGroups = function () {
         return deviceGroups;
-    }
+    };
 
     /**
      * Matches the DeviceGroups to the client's capabilities by evaluating the DeviceGroup's test function.
      */
     BrowserMap.matchDeviceGroups = function () {
-        var deviceGroupsArray = BrowserMap.getDeviceGroupsInRankingOrder();
-        for (var i = 0; i < deviceGroupsArray.length; i++) {
-            var deviceGroup = deviceGroupsArray[i];
+        var deviceGroupsArray = BrowserMap.getDeviceGroupsInRankingOrder(),
+            i,
+            deviceGroup;
+        for (i = 0; i < deviceGroupsArray.length; i++) {
+            deviceGroup = deviceGroupsArray[i];
             if (!!deviceGroup.testFunction.call()) {
                 matchedDeviceGroups[deviceGroup.name] = deviceGroup;
             }
         }
         matchRun = true;
-    }
+    };
 
     /**
      * Queries the list of DeviceGroups associated to this BrowserMap object using a DeviceGroup name and returns it if found.
@@ -472,15 +502,7 @@ window.BrowserMap = (function() {
      */
     BrowserMap.getDeviceGroupByName = function (groupName) {
         return deviceGroups[groupName];
-    }
-
-    BrowserMap.setCookieName = function (name) {
-        cookieName = name;
-    }
-
-    BrowserMap.getCookieName = function () {
-        return cookieName;
-    }
+    };
 
     return BrowserMap;
 
