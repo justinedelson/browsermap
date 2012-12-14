@@ -278,6 +278,23 @@ BrowserMapUtil = {
                 return newURL;
             }
             return url;
+        },
+
+        /**
+         * Transforms a relative URL to an absolute one for IE7 which is not able to resolve relative URLs by itself.
+         *
+         * @param Type:String url - the relative URL
+         * @returns Type:String a String with the absolute URL
+         */
+        'qualifyURL' : function(url) {
+            var absoluteURL = null,
+                el;
+            if (url) {
+                el = document.createElement('div');
+                el.innerHTML= '<a href="' + encodeURI(url) + '">x</a>';
+                absoluteURL = el.firstChild.href;
+            }
+            return absoluteURL;
         }
     }
 };

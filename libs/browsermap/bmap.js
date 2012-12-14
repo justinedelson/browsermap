@@ -82,14 +82,22 @@ window.BrowserMap = (function() {
             links,
             i,
             link,
-            headElement;
+            headElement,
+            onIE7 = false,
+            linkHref;
+        onIE7 = navigator.appVersion.indexOf('MSIE 7') !== -1;
         headElement = document.getElementsByTagName('head');
         if (headElement.length == 1) {
             links = headElement[0].getElementsByTagName('link');
             for (i = 0; i < links.length; i++) {
                 link = links[i];
                 if (link.rel == 'alternate' && link.media && link.media != '') {
-                    alternateSites.push({'id' : link.id, 'href' : link.href, 'hreflang' : link.hreflang, 'media' : link.media});
+                    if (onIE7) {
+                        linkHref = BrowserMapUtil.url.qualifyURL(link.href);
+                    } else {
+                        linkHref = link.href;
+                    }
+                    alternateSites.push({'id' : link.id, 'href' : linkHref, 'hreflang' : link.hreflang, 'media' : link.media});
                 }
             }
         }
