@@ -120,7 +120,7 @@ BrowserMapUtil = {
                 }
             }
             return file;
-        }        
+        }
     },
 
     'url' : {
@@ -254,7 +254,7 @@ BrowserMapUtil = {
                 }
             }
             return selectors;
-        },  
+        },
 
         /**
          * Adds selectors to the supplied URL and returns the modified URL.
@@ -340,4 +340,12 @@ if (!Array.prototype.indexOf) {
         }
         return -1;
     }
+}
+
+// String.trim() polyfill
+// from https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/String/Trim
+if (!String.prototype.trim) {
+    String.prototype.trim = function () {
+        return this.replace(/^\s+|\s+$/g,'');
+    };
 }
