@@ -86,9 +86,9 @@ window.BrowserMap = (function() {
             onIE7 = false,
             linkHref;
         onIE7 = navigator.appVersion.indexOf('MSIE 7') !== -1;
-        headElement = document.getElementsByTagName('head');
-        if (headElement.length == 1) {
-            links = headElement[0].getElementsByTagName('link');
+        headElement = document.getElementsByTagName('head')[0];
+        if (headElement) {
+            links = headElement.getElementsByTagName('link');
             for (i = 0; i < links.length; i++) {
                 link = links[i];
                 if (link.rel == 'alternate' && link.media && link.media != '') {
@@ -305,109 +305,111 @@ window.BrowserMap = (function() {
             url,
             parameters,
             newURL;
-        languageOverride = BrowserMapUtil.url.getValueForParameter(currentURL, languageOverrideParameter)
-        if (deviceOverride) {
-            // override detected
-            detectedDeviceGroups = deviceOverride.split(',');
-            if (detectedDeviceGroups.length > 0) {
-                if (BrowserMapUtil.cookieManager.cookiesEnabled()) {
-                    if (!oCookie && !cookie) {
-                        // tried to access resource directly with override parameter without passing through detection
-                        // run detection code to detect the original device groups
-                        oCookie = new Cookie();
-                        oCookie.name = 'o_' + cookiePrefix + deviceGroupCookieName;
-                        oCookie.path = '/';
-                        BrowserMap.matchDeviceGroups();
-                        for (g in matchedDeviceGroups) {
-                            dgs.push(matchedDeviceGroups[g].name);
-                        }
-                        if (deviceOverride != dgs.join(',')) {
-                            oCookie.value = dgs.join(',');
-                            BrowserMapUtil.cookieManager.setCookie(oCookie);
-                        }
-                    }
-                    else if (!oCookie) {
-                        // detection has been performed; override detected; store original values
-                        if (cookie.value != detectedDeviceGroups.join(',')) {
-                            cookie.name = 'o_' + cookie.name;
-                            cookie.path = '/';
-                            BrowserMapUtil.cookieManager.setCookie(cookie);
-                        }
-                    }
-                    // store the override
-                    cookie = new Cookie();
-                    cookie.name = cookiePrefix + deviceGroupCookieName;
-                    cookie.value = detectedDeviceGroups.join(',');
-                    cookie.path = '/';
-                    BrowserMapUtil.cookieManager.setCookie(cookie);
-                    if (oCookie) {
-                        if (oCookie.value == cookie.value) {
-                            BrowserMapUtil.cookieManager.removeCookie(oCookie.name);
-                        }
-                    }
-                }
-            }
-        }
-        if (cookie != null || deviceOverride) {
-            /**
-             * cookie was either set by the detection code before, or we have an override;
-             *
-             * in either case, the matchDeviceGroups must match the detectedDeviceGroups which can come from the cookie or from the override
-             * parameter
-             */
-            registeredDeviceGroups = BrowserMap.getDeviceGroups();
-            if (detectedDeviceGroups.length == 0) {
-                detectedDeviceGroups = cookie.value.split(',');
-            }
-            matchedDeviceGroups = { };
-            for (i = 0 ; i < detectedDeviceGroups.length; i++) {
-                dgName = detectedDeviceGroups[i].trim();
-                if (registeredDeviceGroups.hasOwnProperty(dgName)) {
-                    if (registeredDeviceGroups[dgName].isSelector) {
-                        urlSelectors.push(dgName);
-                    }
-                    matchedDeviceGroups[dgName] = registeredDeviceGroups[dgName];
-                }
-            }
-            // add the device override parameter to links using the same domain if a device override was detected
-            if (deviceOverride && cookie == null && enableForwardingWhenCookiesDisabled) {
-                domain = BrowserMapUtil.url.getDomainFromURL(window.location.href);
-                aTags = document.getElementsByTagName('a');
-                for (i = 0; i < aTags.length; i++) {
-                    url = aTags[i].href;
-                    if (url && url.indexOf(domain) != -1) {
-                        parameters = BrowserMapUtil.url.getURLParametersString(url);
-                        if (parameters) {
-                            if (parameters.indexOf(languageOverrideParameter + '=' + deviceOverride) == -1) {
-                                aTags[i].href = url + '&' + deviceOverrideParameter + '=' + deviceOverride;
+        if (BrowserMap.isEnabled()) {
+            languageOverride = BrowserMapUtil.url.getValueForParameter(currentURL, languageOverrideParameter)
+            if (deviceOverride) {
+                // override detected
+                detectedDeviceGroups = deviceOverride.split(',');
+                if (detectedDeviceGroups.length > 0) {
+                    if (BrowserMapUtil.cookieManager.cookiesEnabled()) {
+                        if (!oCookie && !cookie) {
+                            // tried to access resource directly with override parameter without passing through detection
+                            // run detection code to detect the original device groups
+                            oCookie = new Cookie();
+                            oCookie.name = 'o_' + cookiePrefix + deviceGroupCookieName;
+                            oCookie.path = '/';
+                            BrowserMap.matchDeviceGroups();
+                            for (g in matchedDeviceGroups) {
+                                dgs.push(matchedDeviceGroups[g].name);
+                            }
+                            if (deviceOverride != dgs.join(',')) {
+                                oCookie.value = dgs.join(',');
+                                BrowserMapUtil.cookieManager.setCookie(oCookie);
                             }
                         }
-                        else {
-                            aTags[i].href = url + '?' + deviceOverrideParameter + '=' + deviceOverride;
+                        else if (!oCookie) {
+                            // detection has been performed; override detected; store original values
+                            if (cookie.value != detectedDeviceGroups.join(',')) {
+                                cookie.name = 'o_' + cookie.name;
+                                cookie.path = '/';
+                                BrowserMapUtil.cookieManager.setCookie(cookie);
+                            }
+                        }
+                        // store the override
+                        cookie = new Cookie();
+                        cookie.name = cookiePrefix + deviceGroupCookieName;
+                        cookie.value = detectedDeviceGroups.join(',');
+                        cookie.path = '/';
+                        BrowserMapUtil.cookieManager.setCookie(cookie);
+                        if (oCookie) {
+                            if (oCookie.value == cookie.value) {
+                                BrowserMapUtil.cookieManager.removeCookie(oCookie.name);
+                            }
                         }
                     }
                 }
             }
-        }
-        else {
-            // no override has been detected, nor a cookie has been set previous to this call
-            // perform the match and then set the cookie
-            BrowserMap.matchDeviceGroups();
-            for (g in matchedDeviceGroups) {
-                if (matchedDeviceGroups[g].isSelector) {
-                    urlSelectors.push(matchedDeviceGroups[g].name);
+            if (cookie != null || deviceOverride) {
+                /**
+                 * cookie was either set by the detection code before, or we have an override;
+                 *
+                 * in either case, the matchDeviceGroups must match the detectedDeviceGroups which can come from the cookie or from the override
+                 * parameter
+                 */
+                registeredDeviceGroups = BrowserMap.getDeviceGroups();
+                if (detectedDeviceGroups.length == 0) {
+                    detectedDeviceGroups = cookie.value.split(',');
                 }
-                detectedDeviceGroups.push(matchedDeviceGroups[g].name);
+                matchedDeviceGroups = { };
+                for (i = 0 ; i < detectedDeviceGroups.length; i++) {
+                    dgName = detectedDeviceGroups[i].trim();
+                    if (registeredDeviceGroups.hasOwnProperty(dgName)) {
+                        if (registeredDeviceGroups[dgName].isSelector) {
+                            urlSelectors.push(dgName);
+                        }
+                        matchedDeviceGroups[dgName] = registeredDeviceGroups[dgName];
+                    }
+                }
+                // add the device override parameter to links using the same domain if a device override was detected
+                if (deviceOverride && cookie == null && enableForwardingWhenCookiesDisabled) {
+                    domain = BrowserMapUtil.url.getDomainFromURL(window.location.href);
+                    aTags = document.getElementsByTagName('a');
+                    for (i = 0; i < aTags.length; i++) {
+                        url = aTags[i].href;
+                        if (url && url.indexOf(domain) != -1) {
+                            parameters = BrowserMapUtil.url.getURLParametersString(url);
+                            if (parameters) {
+                                if (parameters.indexOf(languageOverrideParameter + '=' + deviceOverride) == -1) {
+                                    aTags[i].href = url + '&' + deviceOverrideParameter + '=' + deviceOverride;
+                                }
+                            }
+                            else {
+                                aTags[i].href = url + '?' + deviceOverrideParameter + '=' + deviceOverride;
+                            }
+                        }
+                    }
+                }
             }
-            cookie = new Cookie();
-            cookie.name = cookiePrefix + deviceGroupCookieName;
-            cookie.value = detectedDeviceGroups.join(',');
-            cookie.path = '/';
-            BrowserMapUtil.cookieManager.setCookie(cookie);
-        }
-        newURL = BrowserMap.getNewURL(currentURL, detectedDeviceGroups, urlSelectors);
-        if (newURL && currentURL != newURL) {
-            window.location = newURL;
+            else {
+                // no override has been detected, nor a cookie has been set previous to this call
+                // perform the match and then set the cookie
+                BrowserMap.matchDeviceGroups();
+                for (g in matchedDeviceGroups) {
+                    if (matchedDeviceGroups[g].isSelector) {
+                        urlSelectors.push(matchedDeviceGroups[g].name);
+                    }
+                    detectedDeviceGroups.push(matchedDeviceGroups[g].name);
+                }
+                cookie = new Cookie();
+                cookie.name = cookiePrefix + deviceGroupCookieName;
+                cookie.value = detectedDeviceGroups.join(',');
+                cookie.path = '/';
+                BrowserMapUtil.cookieManager.setCookie(cookie);
+            }
+            newURL = BrowserMap.getNewURL(currentURL, detectedDeviceGroups, urlSelectors);
+            if (newURL && currentURL != newURL) {
+                window.location = newURL;
+            }
         }
     };
 
@@ -511,6 +513,32 @@ window.BrowserMap = (function() {
     BrowserMap.getDeviceGroupByName = function (groupName) {
         return deviceGroups[groupName];
     };
+
+    /**
+     * Checks if BrowserMap should be enabled by searching the current document for tags like
+     *      <meta name="browsermap.enabled" content="false" >
+     * in the <head> section. If such a tag exists, then this method returns false.
+     *
+     * @returns Type:Boolean false if the previously mentioned tag exists, true otherwise
+     */
+    BrowserMap.isEnabled = function () {
+        var headElement = document.getElementsByTagName('head')[0],
+            metaTags,
+            i,
+            name,
+            tag;
+        if (headElement) {
+            metaTags = headElement.getElementsByTagName('meta');
+            for (i = 0; i < metaTags.length; i++) {
+                if ((tag = metaTags[i]) && (name = tag.getAttribute('name'))) {
+                    if (name === 'browsermap.enabled' && tag.getAttribute('content') === 'false') {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
 
     return BrowserMap;
 

@@ -92,3 +92,27 @@ test("probe", function() {
 test("getNewURL", function() {
     strictEqual(BrowserMap.getNewURL(window.location.href, ['smartphone'], ['smartphone']), window.location.href.replace(".html", ".smartphone.html"));
 });
+test("isEnabled", function() {
+    strictEqual(BrowserMap.isEnabled(), false);
+    // now disable BrowserMap by removing the meta tag and call BrowserMap.isEnabled() once more
+    var headElement = document.getElementsByTagName('head')[0],
+        metaTags,
+        i,
+        tag,
+        name;
+    if (headElement) {
+        metaTags = headElement.getElementsByTagName('meta');
+        for (i = 0; i < metaTags.length; i++) {
+            if ((tag = metaTags[i]) && (name = tag.getAttribute('name'))) {
+                if (name === 'browsermap.enabled' && tag.getAttribute('content') === 'false') {
+                    headElement.removeChild(tag);
+                }
+            }
+        }
+    }
+    strictEqual(BrowserMap.isEnabled(), true);
+    // re-add the removed tag
+    if (tag) {
+        headElement.appendChild(tag);
+    }
+});
