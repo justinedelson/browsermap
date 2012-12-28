@@ -25,31 +25,29 @@ BrowserMap.addProbe('devicePixelRatio', function() {
     return screen.width;
 }).addProbe('orientation', function() {
     var orientation = '';
-    if (window.orientation) {
-        if (Math.abs(window.orientation) == 90) {
-            orientation = 'landscape';
-        }
-        else {
-            orientation = 'portrait';
-        }
+    if (window.innerWidth > window.innerHeight) {
+        orientation = 'landscape';
     }
     else {
-        if (screen.width > screen.height) {
-            orientation = 'landscape';
-        }
-        else {
-            orientation = 'portrait';
-        }
+        orientation = 'portrait';
     }
     return orientation;
 }).addProbe('portrait', function() {
     return BrowserMap.probe('orientation') == 'portrait';
 }).addProbe('landscape', function() {
     return BrowserMap.probe('orientation') == 'landscape';
+}).addProbe('screenWidthDependingOnOrientation', function () {
+    var widthDependingOnOrientation = 0;
+    if (BrowserMap.probe('orientation') === 'portrait') {
+        widthDependingOnOrientation = screen.width > screen.height ? screen.height : screen.width;
+    } else {
+        widthDependingOnOrientation = screen.width < screen.height ? screen.height : screen.width;
+    }
+    return widthDependingOnOrientation;
 }).addProbe('canResizeBrowserWindow', function() {
     /**
-     * useful to detect a mobile browser (true) / a desktop browser (false)
+     * useful to detect a mobile browser (false) / a desktop browser (true)
      */
-    return Math.round(BrowserMap.probe('screenWidth') / BrowserMap.probe('devicePixelRatio')) -
+    return Math.round(BrowserMap.probe('screenWidthDependingOnOrientation') / BrowserMap.probe('devicePixelRatio')) -
                 BrowserMap.THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING > BrowserMap.probe('clientWidth');
 });
