@@ -47,6 +47,8 @@ BrowserMap.addDeviceGroup({
     'name' : 'browser',
     'description' : 'Modern desktop browser',
     'testFunction': function () {
+        if (BrowserMap.probe('portrait') && BrowserMap.probe('clientWidth') < 720) return false;
+        if (BrowserMap.probe('landscape') && BrowserMap.probe('clientWidth') <1200) return false;
         return Modernizr.csstransforms3d && !Modernizr.touch;
     },
     'isSelector' : false
