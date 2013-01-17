@@ -5,21 +5,7 @@
  *
  * Define the default probes.
  */
-BrowserMap.addProbe('devicePixelRatio', function() {
-    if(window.devicePixelRatio) {
-        return window.devicePixelRatio;
-    }
-    var mq = window.matchMedia;
-    if (mq) {
-        for (var i = 0.5; i <= 3; i+= 0.05) {
-            var ratio = Math.round(i * 100)/100;
-            if (mq('(-moz-device-pixel-ratio: ' + ratio + '), (-o-device-pixel-ratio: ' + ratio + '), (-webkit-device-pixel-ratio: '+ ratio +')').matches) {
-                return ratio;
-            }
-        }
-    }
-    return 1;
-}).addProbe('clientWidth', function() {
+BrowserMap.addProbe('clientWidth', function() {
     return document.documentElement.clientWidth;
 }).addProbe('screenWidth', function() {
     return screen.width;
@@ -44,6 +30,34 @@ BrowserMap.addProbe('devicePixelRatio', function() {
         widthDependingOnOrientation = screen.width < screen.height ? screen.height : screen.width;
     }
     return widthDependingOnOrientation;
+}).addProbe('clientWidthDependingOnOrientation', function () {
+    var clientWidthDependingOnOrientation = 0;
+    if (BrowserMap.probe('orientation') == 'portrait') {
+        clientWidthDependingOnOrientation = document.documentElement.clientWidth < document.documentElement.clientHeight ? document.documentElement.clientWidth : document.documentElement.clientHeight;
+    } else {
+        clientWidthDependingOnOrientation = document.documentElement.clientWidth > document.documentElement.clientHeight ? document.documentElement.clientWidth : document.documentElement.clientHeight;
+    }
+    return clientWidthDependingOnOrientation;
+}).addProbe('devicePixelRatio', function() {
+    var mq = window.matchMedia,
+        ratio = -1,
+        userAgent;
+    if (mq) {
+        for (var i = 0.5; i <= 3; i+= 0.05) {
+            var r = Math.round(i * 100)/100;
+            if (mq('(max-resolution: ' + r + 'dppx), (max-resolution: ' + r * 96 + 'dpi), (-webkit-max-device-pixel-ratio: ' + r + '), (-o-device-pixel-ratio: ' + r + ')').matches) {
+                ratio = r;
+                break;
+            }
+        }
+    }
+
+    // hacks for browsers not returning correct answers to the above media queries
+    userAgent = navigator.userAgent;
+    if (userAgent.indexOf('BlackBerry') != -1 || userAgent.indexOf('Windows Phone') != -1) {
+        ratio = Math.round(BrowserMap.probe('screenWidthDependingOnOrientation') / BrowserMap.probe('clientWidthDependingOnOrientation') * 100) / 100;
+    }
+    return ratio;
 }).addProbe('canResizeBrowserWindow', function() {
     /**
      * useful to detect a mobile browser (false) / a desktop browser (true)
