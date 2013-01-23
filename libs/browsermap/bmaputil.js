@@ -101,7 +101,7 @@ BrowserMapUtil = {
         'getFileExtension' : function (file) {
             var extension = '';
             if (file && file != '' && file.indexOf('.') != -1) {
-                extension = file.substring(file.lastIndexOf('.'), file.length);
+                extension = file.substring(file.lastIndexOf('.') + 1, file.length);
             }
             return extension;
         },
@@ -191,8 +191,8 @@ BrowserMapUtil = {
         },
 
         /**
-         * Returns the file part of a URL, together with whatever GET parameters might be a part of the URL. If the URL sent as a parameter
-         * is empty or null, the returned value will be a null.
+         * Returns the file part of a URL If the URL sent as a parameter
+         * is empty or null, the returned value will be an empty String.
          *
          * @params Type:String url - the URL from which the file part should be extracted
          * @returns Type:String a String containing the file part; empty string if the URL is null or empty or points to a folder instead of a file
@@ -202,6 +202,7 @@ BrowserMapUtil = {
             if (url && url != '') {
                 url = url.replace('https://', '');
                 url = url.replace('http://', '');
+                url = url.replace(BrowserMapUtil.url.getURLParametersString(url), '');
                 if (url.lastIndexOf('/') != -1 && url[url.lastIndexOf('/') + 1] != '?') {
                     file = url.substring(url.lastIndexOf('/') + 1, url.length);
                 }
@@ -264,17 +265,21 @@ BrowserMapUtil = {
          * @returns Type:String a String containing the new URL
          */
         'addSelectorsToURL' : function(url, selectors) {
-            var file = this.getFileFromURL(url);
+            var file = this.getFileFromURL(url),
+                parameters = BrowserMapUtil.url.getURLParametersString(url);
             file = BrowserMapUtil.file.removeSelectorsFromFile(file);
             if (file && file != '') {
                 var path = this.getFolderPathFromURL(url);
                 var extension = BrowserMapUtil.file.getFileExtension(file);
-                file = file.replace(extension, '');
+                file = file.replace('.' + extension, '');
                 var newURL = path + file;
                 if (selectors.length > 0)
                     newURL += '.';
                 newURL += selectors.join('.');
-                newURL += extension;
+                if (extension && extension != '') {
+                    newURL += '.' + extension;
+                }
+                newURL += parameters;
                 return newURL;
             }
             return url;

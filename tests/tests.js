@@ -27,8 +27,8 @@ test('cookiemanager', function() {
     equal(BrowserMapUtil.cookieManager.getCookie('test'), null, 'removeCookie');
 });
 test('file', function() {
-    strictEqual(BrowserMapUtil.file.getFileExtension('index.html'), '.html', 'getFileExtension - file with extension');
-    strictEqual(BrowserMapUtil.file.getFileExtension('index.html.exe'), '.exe', 'getFileExtension - file with 2 extensions');
+    strictEqual(BrowserMapUtil.file.getFileExtension('index.html'), 'html', 'getFileExtension - file with extension');
+    strictEqual(BrowserMapUtil.file.getFileExtension('index.html.exe'), 'exe', 'getFileExtension - file with 2 extensions');
     strictEqual(BrowserMapUtil.file.getFileExtension('index'), '', 'getFileExtension - file without extension');
     strictEqual(BrowserMapUtil.file.removeSelectorsFromFile('index.a.b.html'), 'index.html', 'removeSelectorsFromFile - two selectors');
     strictEqual(BrowserMapUtil.file.removeSelectorsFromFile('index.html'), 'index.html', 'removeSelectorsFromFile - no selectors');
@@ -43,8 +43,8 @@ test('url', function() {
     equal(BrowserMapUtil.url.getValueForParameter('http://www.example.com/', 'a'), null, 'getValueForParameter - no parameters');
     strictEqual(BrowserMapUtil.url.getURLParametersString('http://www.example.com?a=test&b=test'), '?a=test&b=test', 'getURLParametersString - with parameters');
     strictEqual(BrowserMapUtil.url.getURLParametersString('http://www.example.com'), '', 'getURLParametersString - without parameters');
-    strictEqual(BrowserMapUtil.url.getFileFromURL('http://www.example.com/index.html?param=true'), 'index.html?param=true', 'getFileFromURL - with parameters');
-    strictEqual(BrowserMapUtil.url.getFileFromURL('http://www.example.com/folder/index.html?param=true'), 'index.html?param=true', 'getFileFromURL - with parameters + folder');
+    strictEqual(BrowserMapUtil.url.getFileFromURL('http://www.example.com/index.html?param=true'), 'index.html', 'getFileFromURL - with parameters');
+    strictEqual(BrowserMapUtil.url.getFileFromURL('http://www.example.com/folder/index.html?param=true'), 'index.html', 'getFileFromURL - with parameters + folder');
     strictEqual(BrowserMapUtil.url.getFileFromURL('http://www.example.com/folder/'), '', 'getFileFromURL - no file + folder');
     strictEqual(BrowserMapUtil.url.getFileFromURL('http://www.example.com'), '', 'getFileFromURL - web root');
     strictEqual(BrowserMapUtil.url.getFolderPathFromURL('http://www.example.com/index.html'), 'http://www.example.com/', 'getFolderPathFromURL - url ends with file');

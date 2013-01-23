@@ -211,7 +211,8 @@ window.BrowserMap = (function() {
             }),
             i,
             dg,
-            parameters;
+            parameters = BrowserMapUtil.url.getURLParametersString(currentURL),
+            urlNoParams = currentURL.replace(parameters, '');
         if (alternateSite) {
             newURL = alternateSite.href;
         }
@@ -227,15 +228,10 @@ window.BrowserMap = (function() {
             }
         }
         if (!newURL) {
-            newURL = BrowserMapUtil.url.addSelectorsToURL(currentURL, urlSelectors);
+            newURL = BrowserMapUtil.url.addSelectorsToURL(urlNoParams, urlSelectors);
         }
-        if (newURL) {
-            parameters = BrowserMapUtil.url.getURLParametersString(currentURL);
-            if (parameters.length > 0) {
-                if (newURL.lastIndexOf(parameters) == -1) {
-                    newURL += parameters;
-                }
-            }
+        if (parameters) {
+            newURL += parameters;
         }
         return newURL;
     };
