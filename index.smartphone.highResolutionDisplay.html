@@ -2,14 +2,9 @@
 <html>
 <head>
 <title>Browsermap client-side detection prototype</title>
-<link rel="stylesheet" type="text/css" href="./style.css">
+<link rel="stylesheet" type="text/css" href="css/style.css">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script type="text/javascript" src="https://raw.github.com/raducotescu/browsermap/master/libs/browsermap/bmaputil.js"></script>
-<script type="text/javascript" src="https://raw.github.com/raducotescu/browsermap/master/libs/browsermap/bmap.js"></script>
-<script type="text/javascript" src="https://raw.github.com/raducotescu/browsermap/master/libs/externals/modernizr/modernizr.custom.js"></script>
-<script type="text/javascript" src="https://raw.github.com/paulirish/matchMedia.js/master/matchMedia.js"></script>
-<script type="text/javascript" src="https://raw.github.com/raducotescu/browsermap/master/libs/browsermap/probes.js"></script>
-<script type="text/javascript" src="https://raw.github.com/raducotescu/browsermap/master/libs/browsermap/devicegroups.js"></script>
+<script type="text/javascript" src="js/browsermap.min.js"></script>
 </head>
 <body>
     <div id="result">
@@ -76,37 +71,12 @@
         element = document.getElementById('devicegroup.name');
         element.innerHTML = matchedGroupsNames.join(', ');
 
-        BrowserMap.debug('window.devicePixelRatio');
-        BrowserMap.debug('window.orientation');
-        BrowserMap.debug('navigator.vendor');
-        BrowserMap.debug('navigator.platform');
-        BrowserMap.debug('navigator.appName');
-        BrowserMap.debug('navigator.appVersion');
-        BrowserMap.debug('navigator.appCodeName');
-        BrowserMap.debug('navigator.userAgent');
-
-        BrowserMap.debug('screen.width');
-        BrowserMap.debug('screen.availWidth');
-        BrowserMap.debug('top.window.outerWidth');
-        BrowserMap.debug('screen.height');
-        BrowserMap.debug('screen.availHeight');
-        BrowserMap.debug('top.window.outerHeight');
-
-        BrowserMap.debug('Modernizr.touch');
-        BrowserMap.debug('Modernizr.csstransforms3d');
-
-        BrowserMap.debug('BrowserMap.probe("devicePixelRatio")');
-        BrowserMap.debug('BrowserMap.probe("clientWidth")');
-        BrowserMap.debug('BrowserMap.probe("clientWidthDependingOnOrientation")');
-        BrowserMap.debug('BrowserMap.probe("orientation")');
-        BrowserMap.debug('BrowserMap.probe("portrait")');
-        BrowserMap.debug('BrowserMap.probe("landscape")');
-        BrowserMap.debug('BrowserMap.probe("canResizeBrowserWindow")');
-        BrowserMap.debug('BrowserMap.probe("screenWidthDependingOnOrientation")');
-
         element = document.getElementById('debug.info');
-        for(i in BrowserMap.debuginfo) {
-            element.innerHTML += i + '=' + BrowserMap.debuginfo[i] + '<br />';
+        var probingResults = BrowserMap.getProbingResults();
+        for(i in probingResults) {
+            if (probingResults.hasOwnProperty(i)) {
+                element.innerHTML += i + '=' + probingResults[i] + '<br />';
+            }
         }
         element.innerHTML += '<br />';
         element.innerHTML += 'Test functions: <br />';
