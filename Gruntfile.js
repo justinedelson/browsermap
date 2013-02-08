@@ -37,7 +37,7 @@ module.exports = function(grunt) {
             browsermap: {
                 files: [
                     {src: ['src/main/js/*.js'], dest: 'target/libs/browsermap/', expand: true, flatten: true},
-                    {cwd: 'src/main/resources/js/', src: ['**'], dest: 'target/libs/externals/', expand: true}
+                    {cwd: 'src/main/lib/', src: ['**'], dest: 'target/libs/externals/', expand: true}
                 ]
             }
         },

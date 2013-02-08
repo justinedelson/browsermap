@@ -12,8 +12,8 @@ files = [
     QUNIT_ADAPTER,
     'src/main/js/bmaputil.js',
     'src/main/js/bmap.js',
-    'src/main/resources/js/matchMedia/matchMedia.js',
-    'src/main/resources/js/modernizr/modernizr.custom.js',
+    'src/main/lib/matchMedia/matchMedia.js',
+    'src/main/lib/modernizr/modernizr.custom.js',
     'src/main/js/probes.js',
     'src/main/js/devicegroups.js',
     'src/test/js/*.js'
