@@ -1,4 +1,16 @@
-module('BrowserMapUtil')
+QUnit.begin(function() {
+    var currentURL = window.location.href,
+        headElement = document.getElementsByTagName('head')[0],
+        headElementContent = headElement.innerHTML;
+    headElementContent += '\
+        <link rel="alternate" media="browser" hreflang="en" href="' + currentURL + '">\
+        <link rel="alternate" media="browser" hreflang="de" href="' + currentURL + '">\
+        <link rel="alternate" media="smartphone" hreflang="en" href="' + currentURL.replace('.html', '.smartphone.html') + '">\
+        <meta name="browsermap.enabled" content="false">';
+    headElement.innerHTML = headElementContent;
+});
+
+module('BrowserMapUtil');
 test('merge', function() {
     var hash1 = {a : 1, b : 2};
     var hash2 = {b : 3, c : 3};
@@ -56,19 +68,19 @@ test('url', function() {
     strictEqual(BrowserMapUtil.url.addSelectorsToURL('http://www.example.com/index.html', []), 'http://www.example.com/index.html', 'addSelectorsToURL - no selectors');
 });
 
-module('Array.indexOf polyfill')
+module('Array.indexOf polyfill');
 test('Array.indexOf', function() {
     ok(!!Array.prototype.indexOf, 'Array.indexOf is defined');
 });
 
-module('BrowserMap')
+module('BrowserMap');
 test("getAllAlternateSites", function() {
-    var currentURL = window.location.href;
-    var alternateSites = [
-        {href: currentURL, hreflang : 'en', media : 'browser', id : ''},
-        {href: currentURL, hreflang : 'de', media : 'browser', id : ''},
-        {href: window.location.href.replace(".html", ".smartphone.html"), hreflang : 'en', media : 'smartphone', id : ''}
-    ]
+    var currentURL = window.location.href,
+        alternateSites = [
+            {href: currentURL, hreflang : 'en', media : 'browser', id : ''},
+            {href: currentURL, hreflang : 'de', media : 'browser', id : ''},
+            {href: window.location.href.replace(".html", ".smartphone.html"), hreflang : 'en', media : 'smartphone', id : ''}
+        ];
     deepEqual(BrowserMap.getAllAlternateSites(), alternateSites);
 });
 test("getAlternateSite", function() {
@@ -77,9 +89,13 @@ test("getAlternateSite", function() {
     deepEqual(BrowserMap.getAlternateSite(['browser'], filter), {href: currentURL, hreflang : 'de', media : 'browser', id : ''});
 });
 test("getDeviceGroupsInRankingOrder", function() {
-    BrowserMap.addDeviceGroup({ranking: 1, testFunction : function() {}, name : 'dg2'});
-    BrowserMap.addDeviceGroup({ranking: 0, testFunction : function() {}, name : 'dg1'});
-    var expectedDgs = [{ranking: 0, testFunction : function() {}, name : 'dg1'}, {ranking: 1, testFunction : function() {}, name : 'dg2'}];
+    var expectedDgs = [
+        {ranking: 0, testFunction : function() {}, name : 'smartphone'},
+        {ranking: 10, testFunction : function() {}, name : 'tablet'},
+        {ranking: 20, testFunction : function() {}, name : 'highResolutionDisplay'},
+        {ranking: 30, testFunction : function() {}, name : 'browser'},
+        {ranking: Number.MAX_VALUE, testFunction: function() {}, name : 'oldBrowser'}
+    ];
     var dgs = BrowserMap.getDeviceGroupsInRankingOrder();
     for (var i = 0; i < expectedDgs.length; i++) {
         strictEqual(dgs[i].name, expectedDgs[i].name);
@@ -88,6 +104,7 @@ test("getDeviceGroupsInRankingOrder", function() {
 });
 test("probe", function() {
     equal(null, BrowserMap.probe('nothingHere'));
+    equal('number', typeof BrowserMap.probe('clientWidth'));
 });
 test("getNewURL", function() {
     strictEqual(BrowserMap.getNewURL(window.location.href, ['smartphone'], ['smartphone']), window.location.href.replace(".html", ".smartphone.html"));
@@ -106,11 +123,12 @@ test("isEnabled", function() {
             if ((tag = metaTags[i]) && (name = tag.getAttribute('name'))) {
                 if (name === 'browsermap.enabled' && tag.getAttribute('content') === 'false') {
                     headElement.removeChild(tag);
+                    strictEqual(BrowserMap.isEnabled(), true);
+                    break;
                 }
             }
         }
     }
-    strictEqual(BrowserMap.isEnabled(), true);
     // re-add the removed tag
     if (tag) {
         headElement.appendChild(tag);

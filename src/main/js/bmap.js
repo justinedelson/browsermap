@@ -1,14 +1,16 @@
+/*global BrowserMapUtil:false, Cookie:false */
 /**
- * Authors:
- *      Radu Cotescu (cotescu@adobe.com)
- *      Felix Oghină (foghin@adobe.com)
+ * The BrowserMap object is used to identify the client's device group, based on JavaScript detection tests ("probes") that find out
+ * which features the client supports.
  *
- * The BrowserMap object is used to identify the client's device group, based
- * on javascript detection tests ("probes") that find out which features
- * the client supports.
+ * @name BrowserMap
+ * @constructor
+ * @author Radu Cotescu (cotescu@adobe.com)
+ * @author Felix Oghină (foghin@adobe.com)
  */
-window.BrowserMap = (function() {
-    "use strict";
+var BrowserMap = {};
+(function() {
+    'use strict';
 
     var cookiePrefix = 'BMAP_',
         deviceGroupCookieName = 'device',
@@ -17,25 +19,26 @@ window.BrowserMap = (function() {
         enableForwardingWhenCookiesDisabled = false,
         matchRun = false,
         languageOverride = null,
-
-        // the default BrowserMap object
-        BrowserMap = {},
         deviceGroups = {},
         matchedDeviceGroups = {},
-
         // default BrowserMap probes
         probes = {},
         probeCache = {};
 
-    BrowserMap.debuginfo = {};
-
     /**
-     * Allows quick expression debugging by accepting an expression and storing its evaluated value.
+     * Retrieves the probes Map - useful for outputting debugging information.
      *
-     * @param Type:String expr - the expression to be evaluated
+     * @return {Object} an Object holding the probes and their results
      */
-    BrowserMap.debug = function debug(expr) {
-        BrowserMap.debuginfo[expr] = eval(expr);
+    BrowserMap.getProbingResults = function () {
+        var probingResults = {},
+            probe;
+        for (probe in probes) {
+            if (probes.hasOwnProperty(probe)) {
+                probingResults[probe] = BrowserMap.probe(probe);
+            }
+        }
+        return probingResults;
     };
 
     // Android 4.x phones in landscape view use 42 pixels for displaying the "soft buttons"
@@ -44,38 +47,44 @@ window.BrowserMap = (function() {
     /**
      * Initialises BrowserMap with a configuration object.
      *
-     * @param Type:Object config - a hash object with various properties that can be used to configure BrowserMap
-     *      The following proprerties can be be used:
-     *          1. config.cookiePrefix - the prefix used to name cookies used throughout the detection
-     *          2. config.deviceGroupCookieName - the name of the device group cookie (the final name will be of the form config.cookiePrefix +
-     *             config.deviceGroupCookieName)
-     *          3. config.deviceOverrideParameter - the name of the GET parameter that triggers a device override
-     *          4. config.languageOverrideParameter - the name of the GET parameter that triggers a language override
-     *          5. config.enableForwardingWhenCookiesDisabled - if true, it will allow for all the URLs pointing to resources from the current
-     *             domain to be modified in order to include the deviceOverrideParameter; this is useful if the client does not support cookies
+     * @param {Object} config - a hash object with various properties that can be used to configure BrowserMap
+     * <p>
+     * The following proprerties can be be used:
+     *      <ol>
+     *          <li><code>config.cookiePrefix</code> - the prefix used to name cookies used throughout the detection</li>
+     *          <li><code>config.deviceGroupCookieName</code> - the name of the device group cookie (the final name will be of the form
+     *             <code>config.cookiePrefix + config.deviceGroupCookieName</code>)</li>
+     *          <li><code>config.deviceOverrideParameter</code> - the name of the GET parameter that triggers a device override</li>
+     *          <li><code>config.languageOverrideParameter</code> - the name of the GET parameter that triggers a language override</li>
+     *          <li><code>config.enableForwardingWhenCookiesDisabled</code> - if true, it will allow for all the URLs pointing to resources
+     *              from the current domain to be modified in order to include the deviceOverrideParameter; this is useful if the client
+     *              does not support cookies</li>
+     *      </ol>
+     * </p>
      */
     BrowserMap.config = function (config) {
-        if (config.cookiePrefix != null) {
+        if (config.cookiePrefix !== null) {
             cookiePrefix = config.cookiePrefix;
         }
-        if (config.deviceGroupCookieName != null) {
+        if (config.deviceGroupCookieName !== null) {
             deviceGroupCookieName = config.deviceGroupCookieName;
         }
-        if (config.deviceOverrideParameter != null) {
+        if (config.deviceOverrideParameter !== null) {
             deviceOverrideParameter = config.deviceOverrideParameter;
         }
-        if (config.languageOverrideParameter != null) {
+        if (config.languageOverrideParameter !== null) {
             languageOverrideParameter = config.languageOverrideParameter;
         }
-        if (config.enableForwardingWhenCookiesDisabled != null) {
+        if (config.enableForwardingWhenCookiesDisabled !== null) {
             enableForwardingWhenCookiesDisabled = config.enableForwardingWhenCookiesDisabled;
         }
     };
 
     /**
-     * Returns an Array of the alternate sites by analysing the link elements with rel='alternate' and the media attribute not null or empty.
+     * Returns an Array of the alternate sites by analysing the link elements with rel='alternate' and the media attribute not null or
+     * empty.
      *
-     * @returns Type:Array an array of alternate sites as hash objects; an empty array if no alternate site is found
+     * @return {Array} an array of alternate sites as hash objects; an empty array if no alternate site is found
      */
     BrowserMap.getAllAlternateSites = function () {
         var alternateSites = [],
@@ -91,7 +100,7 @@ window.BrowserMap = (function() {
             links = headElement.getElementsByTagName('link');
             for (i = 0; i < links.length; i++) {
                 link = links[i];
-                if (link.rel == 'alternate' && link.media && link.media != '') {
+                if (link.rel == 'alternate' && link.media && link.media !== '') {
                     if (onIE7) {
                         linkHref = BrowserMapUtil.url.qualifyURL(link.href);
                     } else {
@@ -105,17 +114,20 @@ window.BrowserMap = (function() {
     };
 
     /**
-     * Looks for the best matching alternate site. The primary criterion is the number of matched device groups which also provides the score
-     * of the alternate site. More criteria can be added by providing a filtering function.
-     *
+     * <p>
+     * Looks for the best matching alternate site. The primary criterion is the number of matched device groups which also provides the
+     * score of the alternate site. More criteria can be added by providing a filtering function.
+     * </p>
+     * <p>
      * The filtering function receives an alternate site as a parameter and it must return a boolean value if the filter matches or not. The
      * filter is applied to alternate sites that have matched at least one device group. If the alternate site matches the filter, the total
      * score of the alternate site will increase by 1. The alternate site's object attributes are id, href, hreflang and media.
+     * </p>
      *
-     * @param Type:Array deviceGroups - an array containing the names of the device groups for which to get the best alternate link
-     * @param Type:Function filter - a callback function that acts as a filter and which must return a boolean; the callback will receive a
+     * @param {Array} deviceGroups - an array containing the names of the device groups for which to get the best alternate link
+     * @param {Function} filter - a callback function that acts as a filter and which must return a boolean; the callback will receive a
      *      hash object representing an alternate site with the following attributes: "id", "href", "hreflang", "media"
-     * @returns Type:String the alternate link that matches the most device groups matched by the client
+     * @return {String} the alternate link that matches the most device groups matched by the client
      */
     BrowserMap.getAlternateSite = function (deviceGroups, filter) {
         var alternateSites = BrowserMap.getAllAlternateSites(),
@@ -129,14 +141,14 @@ window.BrowserMap = (function() {
             j,
             linkScore,
             devices;
-        if (currentURLParameters && currentURLParameters != '') {
+        if (currentURLParameters && currentURLParameters !== '') {
             currentURL = currentURL.substring(0, currentURL.indexOf(currentURLParameters));
         }
         for (i = 0; i < alternateSites.length; i++) {
             linkScore = 0;
             devices = alternateSites[i].media.split(',');
             for (j = 0; j < devices.length; j++) {
-                if (deviceGroups.indexOf(devices[j].trim()) != -1) {
+                if (deviceGroups.indexOf(devices[j].trim()) !== -1) {
                     linkScore++;
                 }
             }
@@ -163,13 +175,15 @@ window.BrowserMap = (function() {
     /**
      * Returns the defined DeviceGroups for this BrowserMap as an array in which the elements are ordered by their ranking property.
      *
-     * @returns Type:Array
+     * @return {Array}
      */
     BrowserMap.getDeviceGroupsInRankingOrder = function () {
         var dgs = [],
             dg;
         for (dg in deviceGroups) {
-            dgs.push(deviceGroups[dg]);
+            if (deviceGroups.hasOwnProperty(dg)) {
+                dgs.push(deviceGroups[dg]);
+            }
         }
         dgs.sort(function(a, b) {
             return a.ranking - b.ranking;
@@ -178,14 +192,14 @@ window.BrowserMap = (function() {
     };
 
     /**
-     * Executes a probe that was previously added via addProbe. The result of the probe is cached so a second call
-     * with the same probeName will not run the probe again. You can use BrowserMap.clearProbeCache() to avoid that.
+     * Executes a probe that was previously added via <code>addProbe</code>. The result of the probe is cached so a second call
+     * with the same probeName will not run the probe again. You can use <code>BrowserMap.clearProbeCache()</code> to avoid that.
      *
-     * @param Type:String probeName - the name of the requested probe
-     * @returns Type:Object the result of the probe, or null if the probe has not been defined
+     * @param {String} probeName - the name of the requested probe
+     * @return {Object} the result of the probe, or null if the probe has not been defined
      */
     BrowserMap.probe = function (probeName) {
-        if (probes[probeName] == null) {
+        if (!probes[probeName]) {
             return null;
         }
         if (!probeCache.hasOwnProperty(probeName)) {
@@ -197,15 +211,15 @@ window.BrowserMap = (function() {
     /**
      * Starting from a currentURL, an array of device groups and an array of url selectors returns the alternate URL for the current URL.
      *
-     * @param Type:String currentURL - the current URL
-     * @param Type:Array detectedDeviceGroups - the Array of detected device groups
-     * @prama Type:Attay urlSelectors - the Array of URL selectors, in the order of their device group ranking
-     * @returns Type:String the specific URL for the identified device groups
+     * @param {String} currentURL - the current URL
+     * @param {Array} detectedDeviceGroups - the Array of detected device groups
+     * @prama {Attay} urlSelectors - the Array of URL selectors, in the order of their device group ranking
+     * @return {String} the specific URL for the identified device groups
      */
     BrowserMap.getNewURL = function (currentURL, detectedDeviceGroups, urlSelectors) {
         var newURL = null,
             alternateSite = BrowserMap.getAlternateSite(detectedDeviceGroups, function(alternateLink) {
-                if (languageOverride && alternateLink.hreflang && alternateLink.hreflang.lastIndexOf(languageOverride) == 0) {
+                if (languageOverride && alternateLink.hreflang && alternateLink.hreflang.lastIndexOf(languageOverride) === 0) {
                     return true;
                 }
             }),
@@ -254,10 +268,11 @@ window.BrowserMap = (function() {
             BrowserMapUtil.cookieManager.setCookie(oCookie);
         }
         if (parameters) {
-            overrideParameter = deviceOverrideParameter + '=' + BrowserMapUtil.url.getValueForParameter(currentURL, deviceOverrideParameter);
+            overrideParameter = deviceOverrideParameter + '=' +
+                BrowserMapUtil.url.getValueForParameter(currentURL, deviceOverrideParameter);
             currentURL = currentURL.replace(parameters, '');
             indexOfOverride = parameters.indexOf(overrideParameter);
-            if (indexOfOverride != -1) {
+            if (indexOfOverride !== -1) {
                 if (parameters.length > indexOfOverride + overrideParameter.length) {
                     if (parameters[indexOfOverride - 1] == '?') {
                         parameters = parameters.replace(overrideParameter + '&', '');
@@ -276,13 +291,17 @@ window.BrowserMap = (function() {
     };
 
     /**
-     * Decides if the client should be forwarded to the best matching alternate link based on the following:
-     *      1. BrowserMap will detect to what DeviceGroups a client belongs to.
-     *      2. Based on alternate links (e.g. <link rel="alternate" ... />) from the current page, if they exist, BrowserMap will try to
-     *         forward the client to the alternate link corresponding to the identified DeviceGroup. If that alternate link does not exist,
-     *         BrowserMap will then try to forward the client to the DeviceGroup's URL. If that URL is missing, then a selector will be
-     *         appended to the current URL and the client will be forwarded to this newly formed URL. In either case GET parameters will be
-     *         maintained.
+     * <p>Decides if the client should be forwarded to the best matching alternate link, depending on the detected device group.</p>
+     * <p>
+     * Three options are available for determining the correct representation of a page depending on the detected device group, listed in
+     * the order of their importance:
+     *      <ol>
+     *          <li>alternate links: <code>&lt;link rel="alternate" href="..." hreflang="..." media="device_groups" &gt;</code></li>
+     *          <li><code>DeviceGroup</code> level URLs (check the <code>DeviceGroup</code> objects description)</li>
+     *          <li>selector-based URLs (the device group names will be appended to the current URL: <code>index.html ->
+     *              index.tablet.html</code>)</li>
+     *      </ol>
+     * In either case <code>GET</code> parameters will be maintained.
      */
     BrowserMap.forwardRequest = function () {
         var currentURL = window.location.href,
@@ -302,7 +321,7 @@ window.BrowserMap = (function() {
             parameters,
             newURL;
         if (BrowserMap.isEnabled()) {
-            languageOverride = BrowserMapUtil.url.getValueForParameter(currentURL, languageOverrideParameter)
+            languageOverride = BrowserMapUtil.url.getValueForParameter(currentURL, languageOverrideParameter);
             if (deviceOverride) {
                 // override detected
                 detectedDeviceGroups = deviceOverride.split(',');
@@ -316,16 +335,18 @@ window.BrowserMap = (function() {
                             oCookie.path = '/';
                             BrowserMap.matchDeviceGroups();
                             for (g in matchedDeviceGroups) {
-                                dgs.push(matchedDeviceGroups[g].name);
+                                if (matchedDeviceGroups.hasOwnProperty(g)) {
+                                    dgs.push(matchedDeviceGroups[g].name);
+                                }
                             }
-                            if (deviceOverride != dgs.join(',')) {
+                            if (deviceOverride !== dgs.join(',')) {
                                 oCookie.value = dgs.join(',');
                                 BrowserMapUtil.cookieManager.setCookie(oCookie);
                             }
                         }
                         else if (!oCookie) {
                             // detection has been performed; override detected; store original values
-                            if (cookie.value != detectedDeviceGroups.join(',')) {
+                            if (cookie.value !== detectedDeviceGroups.join(',')) {
                                 cookie.name = 'o_' + cookie.name;
                                 cookie.path = '/';
                                 BrowserMapUtil.cookieManager.setCookie(cookie);
@@ -345,15 +366,15 @@ window.BrowserMap = (function() {
                     }
                 }
             }
-            if (cookie != null || deviceOverride) {
+            if (cookie !== null || deviceOverride) {
                 /**
                  * cookie was either set by the detection code before, or we have an override;
                  *
-                 * in either case, the matchDeviceGroups must match the detectedDeviceGroups which can come from the cookie or from the override
-                 * parameter
+                 * in either case, the matchDeviceGroups must match the detectedDeviceGroups which can come from the cookie or from the
+                 * override parameter
                  */
                 registeredDeviceGroups = BrowserMap.getDeviceGroups();
-                if (detectedDeviceGroups.length == 0) {
+                if (detectedDeviceGroups.length === 0) {
                     detectedDeviceGroups = cookie.value.split(',');
                 }
                 matchedDeviceGroups = { };
@@ -367,12 +388,12 @@ window.BrowserMap = (function() {
                     }
                 }
                 // add the device override parameter to links using the same domain if a device override was detected
-                if (deviceOverride && cookie == null && enableForwardingWhenCookiesDisabled) {
+                if (deviceOverride && cookie === null && enableForwardingWhenCookiesDisabled) {
                     domain = BrowserMapUtil.url.getDomainFromURL(window.location.href);
                     aTags = document.getElementsByTagName('a');
                     for (i = 0; i < aTags.length; i++) {
                         url = aTags[i].href;
-                        if (url && url.indexOf(domain) != -1) {
+                        if (url && url.indexOf(domain) !== -1) {
                             parameters = BrowserMapUtil.url.getURLParametersString(url);
                             if (parameters) {
                                 if (parameters.indexOf(languageOverrideParameter + '=' + deviceOverride) == -1) {
@@ -391,10 +412,12 @@ window.BrowserMap = (function() {
                 // perform the match and then set the cookie
                 BrowserMap.matchDeviceGroups();
                 for (g in matchedDeviceGroups) {
-                    if (matchedDeviceGroups[g].isSelector) {
-                        urlSelectors.push(matchedDeviceGroups[g].name);
+                    if (matchedDeviceGroups.hasOwnProperty(g)) {
+                        if (matchedDeviceGroups[g].isSelector) {
+                            urlSelectors.push(matchedDeviceGroups[g].name);
+                        }
+                        detectedDeviceGroups.push(matchedDeviceGroups[g].name);
                     }
-                    detectedDeviceGroups.push(matchedDeviceGroups[g].name);
                 }
                 cookie = new Cookie();
                 cookie.name = cookiePrefix + deviceGroupCookieName;
@@ -403,7 +426,7 @@ window.BrowserMap = (function() {
                 BrowserMapUtil.cookieManager.setCookie(cookie);
             }
             newURL = BrowserMap.getNewURL(currentURL, detectedDeviceGroups, urlSelectors);
-            if (newURL && currentURL != newURL) {
+            if (newURL && currentURL !== newURL) {
                 window.location = newURL;
             }
         }
@@ -417,28 +440,37 @@ window.BrowserMap = (function() {
     };
 
     /**
-     * Adds a DeviceGroup to the BrowserMap object. The key which is used to store the DeviceGroup is represented by its name. The last
-     * DeviceGroup added to BrowserMap with the same name as a previously existing DeviceGroup will be the one which will be stored.
+     * Adds a <code>DeviceGroup</code> to the <code>BrowserMap</code> object. The key which is used to store the <code>DeviceGroup</code> is
+     * represented by its name. The last <code>DeviceGroup</code> added to <code>BrowserMap</code> with the same name as a previously
+     * existing <code>DeviceGroup</code> will be the one which will be stored.
      *
-     * @param Type:Object deviceGroup - the DeviceGroup to be added to the list; a DeviceGroup is represented by a hash object with the
-     *      following attributes:
-     *          1. Type:Number ranking                  - the order number of the DeviceGroup (when it comes to matching the DeviceGroups to
-     *             the client's capabilites, the defined DeviceGroups will be evaluated in order)
-     *          2. Type:String name                     - the name of the DeviceGroup as one word (use camelCase if you need more words)
-     *          3. Type:Function testFunction           - the function that is to be evaluated to check if the client matches the
-     *             DeviceGroup; this function *must* return a boolean value
-     *          4. Type:String url (optional)           - the URL to which a client will be forwarded in case the DeviceGroup matches and
-     *             the current page does not contain an alternate link to which the client can be pointed
-     *          5. Type:String description (optional)   - the description of the DeviceGroup
-     *          6. Type:Boolean isSelector (optional)   - if present and set to true, the name of the DeviceGroup will be used to create a
-     *             URL with a selector to which BrowserMap can forward the client (e.g. index.selector.html);
+     * @param {Object} deviceGroup - the DeviceGroup to be added to the list
+     * <p>
+     * A DeviceGroup is represented by a hash object with the following attributes:
+     *      <ol>
+     *          <li><code>Number</code> <code>ranking</code> - the order number of the DeviceGroup (when it comes to matching the
+     *              <code>DeviceGroups</code> to the client's capabilites, the defined <code>DeviceGroups</code> will be evaluated in order)
+     *          </li>
+     *          <li><code>String</code> <code>name</code> - the name of the <code>DeviceGroup</code> as one word (use camelCase if you need
+     *              more words)</li>
+     *          <li><code>Function</code> <code>testFunction</code> - the function that is to be evaluated to check if the client matches
+     *              the <code>DeviceGroup</code>; this function <strong>must</strong> return a boolean value</li>
+     *          <li><code>String</code> <code>url</code> (optional) - the URL to which a client will be forwarded in case the
+     *              <code>DeviceGroup</code> matches and the current page does not contain an alternate link to which the client can be
+     *              forwarded</li>
+     *          <li><code>String</code> <code>description</code> (optional) - the description of the <code>DeviceGroup</code></li>
+     *          <li><code>Boolean</code> <code>isSelector</code> (optional) - if present and set to <code>true</code>, the name of the
+     *              <code>DeviceGroup</code> will be used to create a URL with a selector to which BrowserMap can forward the client
+     *              (e.g. index.selector.html)</li>
+     *      </ol>
+     * </p>
      */
     BrowserMap.addDeviceGroup = function (deviceGroup) {
         // validate the deviceGroup object
-        if (typeof deviceGroup.ranking != 'number') {
+        if (typeof deviceGroup.ranking !== 'number') {
             throw new TypeError('Expected a Number for device group ' + deviceGroup.name + ' ranking');
         }
-        if (typeof deviceGroup.testFunction != 'function') {
+        if (typeof deviceGroup.testFunction !== 'function') {
             throw new TypeError('Expected a Function for device group ' + deviceGroup.name + ' testFunction');
         }
         deviceGroups[deviceGroup.name] = deviceGroup;
@@ -451,13 +483,13 @@ window.BrowserMap = (function() {
      * @param name a String containing the name of the probe
      * @param probe a Function that returns the result of the probe
      *
-     * @returns the BrowserMap object
+     * @return the BrowserMap object
      */
     BrowserMap.addProbe = function (name, probe) {
-        if (typeof name != 'string' || name.length < 1) {
+        if (typeof name !== 'string' || name.length < 1) {
             throw new TypeError('invalid probe name');
         }
-        if (typeof probe != 'function') {
+        if (typeof probe !== 'function') {
             throw new TypeError('invalid probe function');
         }
         if (!probes.hasOwnProperty(name)) {
@@ -469,7 +501,7 @@ window.BrowserMap = (function() {
     /**
      * Returns the DeviceGroups that a client has matched.
      *
-     * @returns Type:Object a hash object containing the matched device groups
+     * @return {Object} a hash object containing the matched device groups
      */
     BrowserMap.getMatchedDeviceGroups = function () {
         return matchedDeviceGroups;
@@ -478,7 +510,7 @@ window.BrowserMap = (function() {
     /**
      * Returns all the DeviceGroups defined for the BrowserMap object.
      *
-     * @returns Type:Object a hash object containing the defined device groups for this BrowserMap instance
+     * @return {Object} a hash object containing the defined device groups for this BrowserMap instance
      */
     BrowserMap.getDeviceGroups = function () {
         return deviceGroups;
@@ -503,19 +535,18 @@ window.BrowserMap = (function() {
     /**
      * Queries the list of DeviceGroups associated to this BrowserMap object using a DeviceGroup name and returns it if found.
      *
-     * @param Type:String groupName - the name of the DeviceGroup
-     * @returns Type:DeviceGroup the DeviceGroup with the respective name, null otherwise
+     * @param {String} groupName - the name of the DeviceGroup
+     * @return {DeviceGroup} the DeviceGroup with the respective name, null otherwise
      */
     BrowserMap.getDeviceGroupByName = function (groupName) {
         return deviceGroups[groupName];
     };
 
     /**
-     * Checks if BrowserMap should be enabled by searching the current document for tags like
-     *      <meta name="browsermap.enabled" content="false" >
-     * in the <head> section. If such a tag exists, then this method returns false.
+     * Checks if BrowserMap should be enabled by searching the current document for tags like <code>&lt;meta name="browsermap.enabled"
+     *  content="false"&gt;</code> in the <head> section. If such a tag exists, then this method returns <code>false</code>.
      *
-     * @returns Type:Boolean false if the previously mentioned tag exists, true otherwise
+     * @return {Boolean} false if the previously mentioned tag exists, true otherwise
      */
     BrowserMap.isEnabled = function () {
         var headElement = document.getElementsByTagName('head')[0],
@@ -534,7 +565,7 @@ window.BrowserMap = (function() {
             }
         }
         return true;
-    }
+    };
 
     return BrowserMap;
 

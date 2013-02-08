@@ -1,0 +1,331 @@
+body {
+    margin: 0;
+    padding: 36px 15px 0 50px;
+    background-color: #F0F0F0;
+    color: #666666;
+    font-size:17px;
+    font-family:'HelveticaNeue-Light',Helvetica,Arial,sans-serif;
+    font-weight:300;
+}
+
+a {
+    color: #666666;
+}
+
+a:hover, a:active {
+    color: black;
+}
+
+h1 {
+    border-top: 1px dotted;
+    width: 600px;
+    margin-top:25px;
+    font-size:300%;
+    font-weight:bold;
+}
+
+h2 {
+    border-top: 1px solid;
+    width: 600px;
+    padding-left: 60px;
+    padding-top: 10px;
+    margin-top: 40px;
+    margin-bottom: 2px;
+    font-size:125%;
+    font-weight:bold;
+}
+
+h1 p {
+    font-size: 14px;
+    font-weight:normal;
+    padding-left:0;
+}
+
+h2.no-icon {
+    margin-left:60px;
+    padding-left:0;
+}
+
+p {
+    width: 100%;
+    padding-left: 0px;
+    margin-top: 0;
+    margin-bottom: 0px;
+}
+
+pre {
+    padding-left: 60px;
+}
+
+p.breadcrumb {
+    position:absolute;
+    top:42px;
+    left:50px;
+    margin: 0;
+    padding: 0;
+    font-size:11px;
+}
+
+em {
+    padding-left: 60px;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+ul {
+    list-style-type: none;
+    margin-left: 60px;
+    padding-left:22px;
+    margin-bottom: 30px;
+}
+
+li {
+    border-top: 1px dotted;
+    width: 578px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+ul.level2 {
+    list-style-type: none;
+    margin: 0 0 4px 20px;
+}
+ul.level2 li {
+    border: none;
+    line-height:normal;
+}
+
+li.empty-item {
+    font-style: italic;
+}
+
+
+div.edit-box {
+    width: 500px;
+    margin-left: 100px;
+    background-color: white;
+    padding: 10px 12px 10px 10px;
+}
+
+div.edit-box.wide {
+    width: 580px;
+    margin-left: 60px;
+    background-color: white;
+    padding: 10px 12px 10px 10px;
+}
+
+div.edit-box.wide p {
+    width: 540px;
+}
+
+/* Span must be used for image icon bullet */
+div.li-bullet {
+    margin-left: -35px;
+    padding-left: 35px;
+    background-repeat: no-repeat;
+    background-position: 8px 4px;
+}
+
+h3 {
+    margin: 0px;
+    background-color: #666666;
+    color: #FFFFFF;
+    /*padding: 2px;*/
+    font-size:110%;
+    font-weight:bold;
+}
+
+/* general data table */
+table {
+    border: 1px solid #888888;
+    border-collapse:collapse;
+}
+
+td, th {
+    color: #666666;
+    background-color: white;
+    font-size: 14px;
+    font-family: Arial, Verdana, sans-serif;
+    padding: 4px;
+    border-right: 1px dotted black;
+}
+th {
+    text-align: left;
+}
+td {
+    border-top: 1px solid #888888;
+}
+
+/* special table for a html form */
+table.form {
+    border: 0;
+    border-collapse:collapse;
+    margin-left: 60px;
+}
+
+table.form td,
+table.form th {
+    min-width: 100px;
+    color: #666666;
+    background-color: inherit;
+    font-size: 14px;
+    font-family: Arial, Verdana, sans-serif;
+    padding: 4px;
+    vertical-align: baseline;
+    border: 0;
+}
+table.form th {
+    text-align: left;
+}
+table.form td {
+    border: 0;
+}
+
+/* special table for a property sheet form */
+table.propsheet {
+    border-collapse:collapse;
+}
+
+table.propsheet td,
+table.propsheet th {
+    min-width: 100px;
+    color: #666666;
+    background-color:inherit;
+    font-size: 14px;
+    font-family: Arial, Verdana, sans-serif;
+    padding: 4px;
+}
+table.propsheet th {
+    text-align: left;
+}
+table.propsheet td {
+}
+
+table.propsheet tr.odd {
+    background-color: #e6ebf0;
+}
+table.propsheet tr.even {
+    background-color: #dfe8f6;
+}
+#header {
+    position:absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 36px;
+    background:url("titlebar.png");
+}
+
+#header .home {
+    display:block;
+    cursor:pointer;
+    width:135px;
+    height:36px;
+}
+
+.box {
+    padding-right: 200px;
+    margin-bottom: 30px;
+}
+
+div.box.credentials p {
+    font-weight: normal;
+    font-size: 12px;
+    margin: 2px 0 2px 0;
+
+}
+
+div.box.credentials ul {
+    list-style-type: none;
+    list-style-position: outside;
+}
+
+div.box.credentials li {
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    font-family: monospace;
+}
+
+div.box.credentials input {
+    font-style: italic;
+}
+
+div.box.credentials td {
+    font-size: 12px;
+}
+
+div.box.result #result_error {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+div.box.result #result_error p {
+    margin: 2px 0 2px 0;
+}
+
+div.box.result #result_error_message,
+div.box.result #result_error_cause {
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    font-family: monospace;
+}
+
+div.definition-container {
+    margin-left:60px;
+    width:600px;
+}
+
+div.editbar-container {
+    width:600px;
+}
+
+div.debug {
+    font-family:monospace;
+    margin-top: 20px;
+    margin-bottom: 50px;
+}
+
+div.console-output {
+    background-color: #000000;
+    color: #24FE51;
+    overflow:auto;
+    padding: 10px;
+}
+
+#result {
+    font-size:200%;
+    margin:0.5em;
+    padding: 0.5em;
+
+    /* gradient, from http://www.puremango.co.uk/2010/04/css-gradient-background/ */
+    background: yellow;
+
+    /* Mozilla: */
+    background: -moz-linear-gradient(left, yellow, #00FF00);
+
+    /* Chrome, Safari:*/
+    background: -webkit-gradient(linear,
+                left top, right top, from(yellow), to(#00FF00));
+    /* MSIE */
+    filter: progid:DXImageTransform.Microsoft.Gradient(
+                StartColorStr='yellow', EndColorStr='#00FF00', GradientType=1);
+
+    /* rounder corners */
+    -moz-border-radius: 1em;
+    border-radius: 1em;
+}
+
+#result span {
+    color:blue;
+    font-weight:bold;
+}
+#result .note {
+    font-size:75%
+}
+#result .note span {
+    color:black;
+    font-weight:normal;
+    font-style:italic;
+}
