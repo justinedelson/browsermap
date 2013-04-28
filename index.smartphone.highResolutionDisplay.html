@@ -27,7 +27,7 @@
             <ol>
             <script type="text/javascript">
                 var dgs = BrowserMap.getDeviceGroupsInRankingOrder(),
-                    urlNoParams = window.location.href.replace(BrowserMapUtil.url.getURLParametersString(window.location.href), ''),
+                    urlNoParams = window.location.href.replace(BrowserMapUtil.Url.getURLParametersString(window.location.href), ''),
                     i;
                 for (i = 0; i < dgs.length; i++) {
                     document.write('<li><a href="' + urlNoParams + '?device=' + dgs[i].name + '">' + dgs[i].name + '</a></li>');
