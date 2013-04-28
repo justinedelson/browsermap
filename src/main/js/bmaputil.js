@@ -368,6 +368,32 @@
                 absoluteURL = el.firstChild.href;
             }
             return absoluteURL;
+        },
+
+        /**
+         * Searches for a canonical link in the current document. If ones is found, its href attribute's value is returned.
+         *
+         * @return {String} a String with the canonical URL; null if one is not found
+         */
+        getCanonicalURL : function() {
+            var headElement = document.getElementsByTagName('head')[0],
+                links,
+                i,
+                link,
+                url;
+            if (headElement) {
+                links = headElement.getElementsByTagName('link');
+                if (links) {
+                    for (i = 0; i < links.length; i++) {
+                        link = links[i];
+                        if (link.rel && link.rel === 'canonical') {
+                            url = link.href;
+                            break;
+                        }
+                    }
+                }
+            }
+            return url;
         }
     };
 

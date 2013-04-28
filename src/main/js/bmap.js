@@ -318,7 +318,8 @@
             aTags,
             url,
             parameters,
-            newURL;
+            newURL,
+            canonicalURL = BrowserMapUtil.Url.getCanonicalURL();
         if (BrowserMap.isEnabled()) {
             languageOverride = BrowserMapUtil.Url.getValueForParameter(currentURL, languageOverrideParameter);
             if (deviceOverride) {
@@ -425,7 +426,7 @@
                 BrowserMapUtil.CookieManager.setCookie(cookie);
             }
             newURL = BrowserMap.getNewURL(currentURL, detectedDeviceGroups, urlSelectors);
-            if (newURL && currentURL !== newURL) {
+            if (currentURL !== newURL && canonicalURL !== newURL) {
                 window.location = newURL;
             }
         }

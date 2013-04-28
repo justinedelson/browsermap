@@ -3,6 +3,7 @@ QUnit.begin(function() {
         headElement = document.getElementsByTagName('head')[0],
         headElementContent = headElement.innerHTML;
     headElementContent += '\
+        <link rel="canonical" href="' + currentURL + '">\
         <link rel="alternate" media="browser" hreflang="en" href="' + currentURL + '">\
         <link rel="alternate" media="browser" hreflang="de" href="' + currentURL + '">\
         <link rel="alternate" media="smartphone" hreflang="en" href="' + currentURL.replace('.html', '.smartphone.html') + '">\
@@ -66,6 +67,7 @@ test('url', function() {
     deepEqual(BrowserMapUtil.Url.getSelectorsFromURL('http://www.example.com/index.html'), [], 'getSelectorsFromURL - no selectors');
     strictEqual(BrowserMapUtil.Url.addSelectorsToURL('http://www.example.com/index.html', ['a', 'b']), 'http://www.example.com/index.a.b.html', 'addSelectorsToURL - two selectors');
     strictEqual(BrowserMapUtil.Url.addSelectorsToURL('http://www.example.com/index.html', []), 'http://www.example.com/index.html', 'addSelectorsToURL - no selectors');
+    strictEqual(BrowserMapUtil.Url.getCanonicalURL(), window.location.href, 'getCanonicalURL');
 });
 
 module('Array.indexOf polyfill');
