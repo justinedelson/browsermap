@@ -1,19 +1,21 @@
 /**
  * BrowserMapUtil contains various utility static functions used by BrowserMap-related code.
  *
- * @author Radu Cotescu (cotescu@adobe.com)
+ * @author Radu Cotescu (radu@apache.org)
  * @author Felix Oghină (foghin@adobe.com)
- * @class
+ * @class BrowserMapUtil
  */
-var BrowserMapUtil = {
-    /**
+ (function(BrowserMapUtil) {
+    'use strict';
+
+        /**
      * Merge two objects as hashes. Entries with duplicate keys are overwritten with values from the second object.
      *
      * @param {Object} hsh1 - the first hash object
      * @param {Object} hsh2 - the second hash object
      * @return {Object} a hash object obtained by merging the two parameter hash objects
      */
-    'merge' : function(hsh1, hsh2) {
+    BrowserMapUtil.merge = function(hsh1, hsh2) {
         var hsh = { },
             prop;
         for (prop in hsh1) {
@@ -27,7 +29,7 @@ var BrowserMapUtil = {
             }
         }
         return hsh;
-    },
+    };
 
     /**
      * Returns the set difference between Array a and Array b (a \ b).
@@ -37,7 +39,7 @@ var BrowserMapUtil = {
      * @return {Array} an Array containing the set difference
      * @throws TypeError if either a or b are not of type Array
      */
-    'getArrayDifference' : function (a, b) {
+    BrowserMapUtil.getArrayDifference = function (a, b) {
         if (!a instanceof Array) {
             throw new TypeError('Expected Array for a');
         }
@@ -56,22 +58,22 @@ var BrowserMapUtil = {
             }
         }
         return diff;
-    },
+    };
 
     /**
      * The <code>cookieManager</code> is used to manage cookies client-side (see
      * {@link https://developer.mozilla.org/en/DOM/document.cookie}).
      *
-     * @constructor
+     * @class BrowserMapUtil.CookieManager
      */
-    'cookieManager' : {
+    BrowserMapUtil.CookieManager = {
         /**
          * Returns a <code>Cookie</code> set on the client.
          *
          * @param {String} name - the cookie's name
          * @return {Cookie} the cookie; <code>null</code> if the specified cookie cannot be found
          */
-        'getCookie' : function (name) {
+        getCookie : function (name) {
             if (!name || !this.cookieExists(name)) { return null; }
             var cookieValue = decodeURIComponent(document.cookie.replace(new RegExp('(?:^|.*;\\s*)' +
                 encodeURIComponent(name).replace(/[\-\.\+\*]/g, '\\$&') + '\\s*\\=\\s*((?:[^;](?!;))*[^;]?).*'), '$1'));
@@ -84,7 +86,7 @@ var BrowserMapUtil = {
          *
          * @param {Cookie} cookie - the cookie
          */
-        'setCookie' : function (cookie) {
+        setCookie : function (cookie) {
             if (!cookie.name || /^(?:expires|max\-age|path|domain|secure)$/.test(cookie.name)) { return; }
             var sExpires = '';
             if (cookie.expires) {
@@ -110,7 +112,7 @@ var BrowserMapUtil = {
          *
          * @param {Cookie} name - the <code>Cookie</code>'s name
          */
-        'removeCookie' : function (name) {
+        removeCookie : function (name) {
             if (!name || !this.cookieExists(name)) { return; }
             var oExpDate = new Date();
             oExpDate.setDate(oExpDate.getDate() - 1);
@@ -123,11 +125,11 @@ var BrowserMapUtil = {
          * @param {String} name - the cookie's name
          * @return {Boolean} <code>true</code> if the cookie exists, <code>false</code> otherwise
          */
-        'cookieExists' : function (name) {
+        cookieExists : function (name) {
             return (new RegExp('(?:^|;\\s*)' + encodeURIComponent(name).replace(/[\-\.\+\*]/g, '\\$&') + '\\s*\\=')).test(document.cookie);
         },
 
-        'cookiesEnabled' : function () {
+        cookiesEnabled : function () {
             var cookie = new Cookie('browsermap_test_cookie', 'browsermap_test_cookie', 10, '/');
             this.setCookie(cookie);
             var testCookie = this.getCookie('browsermap_test_cookie');
@@ -137,21 +139,21 @@ var BrowserMapUtil = {
             }
             return false;
         }
-    },
+    };
 
     /**
      * The <code>file</code> object provides various file-related static utility methods.
      *
-     * @constructor
+     * @class BrowserMapUtil.File
      */
-    'file' : {
+    BrowserMapUtil.File = {
         /**
          * Returns the extension of a file based on the file name.
          *
          * @param {String} file - the file's name
          * @return {String} a String containing the file's extension, empty String if the file does not have an extension
          */
-        'getFileExtension' : function (file) {
+        getFileExtension : function (file) {
             var extension = '';
             if (file && file !== '' && file.indexOf('.') != -1) {
                 extension = file.substring(file.lastIndexOf('.') + 1, file.length);
@@ -165,7 +167,7 @@ var BrowserMapUtil = {
          * @param {String} file - the file from which to remove the selectors
          * @return {String} a String containing the file with the removed selectors
          */
-        'removeSelectorsFromFile' : function(file) {
+        removeSelectorsFromFile : function(file) {
             if (file && file !== '') {
                 var tokens = file.split('.');
                 if (tokens.length > 2) {
@@ -174,21 +176,21 @@ var BrowserMapUtil = {
             }
             return file;
         }
-    },
+    };
 
     /**
      * The <code>url</code> object provides various URL-related static utility methods.
      *
-     * @constructor
+     * @class BrowserMapUtil.Url
      */
-    'url' : {
+    BrowserMapUtil.Url = {
         /**
          * Analyses a URL an returns the domain part from it.
          *
          * @param {String} url - the URL from which to extract the domain part
          * @return {String} the detected domain
          */
-        'getDomainFromURL' : function (url) {
+        getDomainFromURL : function (url) {
             var domain = '';
             url = url.replace(/http:\/\/|https:\/\//, '');
             var slashIndex = url.indexOf('/');
@@ -206,7 +208,7 @@ var BrowserMapUtil = {
          * @param {String} value - the encoded value of the parameter
          * @return {String} the decoded value of the parameter
          */
-        'decodeURLParameterValue' : function (value) {
+        decodeURLParameterValue : function (value) {
             return decodeURIComponent(value.replace(/\+/g, ' '));
         },
 
@@ -216,7 +218,7 @@ var BrowserMapUtil = {
          * @param {String} url - the URL from which the parameters need to be extracted
          * @return {Object} the map with the parameters and their values
          */
-        'getURLParameters' : function (url) {
+        getURLParameters : function (url) {
             var map = {}, self = this;
             var f = function(m,key,value) { map[key] = self.decodeURLParameterValue(value); };
             url.replace(/[?&]+([^=&]+)=([^&]*)/gi, f);
@@ -231,7 +233,7 @@ var BrowserMapUtil = {
          * @param {String} parameter - the name of the <code>GET</code> parameter whose value needs to be returned
          * @return {String} the value of the parameter, <code>null</code> if the parameter does not exist
          */
-        'getValueForParameter' : function (url, parameter) {
+        getValueForParameter : function (url, parameter) {
             return this.getURLParameters(url)[parameter];
         },
 
@@ -241,7 +243,7 @@ var BrowserMapUtil = {
          * @param {String} url - the URL form which the parameters String should be extracted
          * @return {String} the parameters String; empty String if the URL is <code>null</code> / empty
          */
-        'getURLParametersString' : function (url) {
+        getURLParametersString : function (url) {
             var urlParametersString = '';
             if (url && url !== '' && url.lastIndexOf('?') != -1) {
                 urlParametersString = url.substring(url.lastIndexOf('?'), url.length);
@@ -257,12 +259,12 @@ var BrowserMapUtil = {
          * @return {String} a String containing the file part; empty String if the URL is null or empty or points to a folder instead of
          *      a file
          */
-        'getFileFromURL' : function getFileFromURL(url) {
+        getFileFromURL : function (url) {
             var file = '';
             if (url && url !== '') {
                 url = url.replace('https://', '');
                 url = url.replace('http://', '');
-                url = url.replace(BrowserMapUtil.url.getURLParametersString(url), '');
+                url = url.replace(BrowserMapUtil.Url.getURLParametersString(url), '');
                 if (url.lastIndexOf('/') != -1 && url[url.lastIndexOf('/') + 1] != '?') {
                     file = url.substring(url.lastIndexOf('/') + 1, url.length);
                 }
@@ -277,7 +279,7 @@ var BrowserMapUtil = {
          * @return {String} a String containing the folder path; empty String if the URL is <code>null</code> or empty or it does not end
          *  with "/"
          */
-        'getFolderPathFromURL' : function (url) {
+        getFolderPathFromURL : function (url) {
             var folderPath = '';
             var tmpURL = url;
             tmpURL = tmpURL.replace('https://', '');
@@ -296,7 +298,7 @@ var BrowserMapUtil = {
          * @param {String} url - the URL from which the selectors have to be extracted
          * @return {Array} an Array with the selectors; the Array will be empty if no selectors have been found
          */
-        'getSelectorsFromURL' : function(url) {
+        getSelectorsFromURL : function(url) {
             var selectors = [];
             if (url && url !== '') {
                 url = url.replace('https://', '');
@@ -321,7 +323,7 @@ var BrowserMapUtil = {
         /**
          * Adds selectors to the supplied URL and returns the modified URL. For example:
          * <pre>
-         *      BrowserMapUtil.url.addSelectorsToUrl('http://www.example.com/index.html', ['mobile'])
+         *      BrowserMapUtil.Url.addSelectorsToUrl('http://www.example.com/index.html', ['mobile'])
          *      ->
          *      'http://www.example.com/index.mobile.html'
          * </pre>
@@ -329,13 +331,13 @@ var BrowserMapUtil = {
          * @param {Array} selectors - an Array with the selectors that have to be applied to the current URL
          * @return {String} a String containing the new URL
          */
-        'addSelectorsToURL' : function(url, selectors) {
+        addSelectorsToURL : function(url, selectors) {
             var file = this.getFileFromURL(url),
-                parameters = BrowserMapUtil.url.getURLParametersString(url);
-            file = BrowserMapUtil.file.removeSelectorsFromFile(file);
+                parameters = BrowserMapUtil.Url.getURLParametersString(url);
+            file = BrowserMapUtil.File.removeSelectorsFromFile(file);
             if (file && file !== '') {
                 var path = this.getFolderPathFromURL(url);
-                var extension = BrowserMapUtil.file.getFileExtension(file);
+                var extension = BrowserMapUtil.File.getFileExtension(file);
                 file = file.replace('.' + extension, '');
                 var newURL = path + file;
                 if (selectors.length > 0) {
@@ -357,7 +359,7 @@ var BrowserMapUtil = {
          * @param {String} url - the relative URL
          * @return {String} a String with the absolute URL
          */
-        'qualifyURL' : function(url) {
+        qualifyURL : function(url) {
             var absoluteURL = null,
                 el;
             if (url) {
@@ -367,8 +369,10 @@ var BrowserMapUtil = {
             }
             return absoluteURL;
         }
-    }
-};
+    };
+
+ })(window.BrowserMapUtil = window.BrowserMapUtil || {});
+
 
 /**
  * Creates a Cookie object.

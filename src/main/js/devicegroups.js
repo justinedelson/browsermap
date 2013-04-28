@@ -1,6 +1,6 @@
 /**
  * Authors:
- *      Radu Cotescu (cotescu@adobe.com)
+ *      Radu Cotescu (radu@apache.org)
  *      Felix Oghină (foghin@adobe.com)
  *
  * Define the default device groups.

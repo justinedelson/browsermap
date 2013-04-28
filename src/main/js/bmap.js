@@ -5,11 +5,10 @@
  *
  * @name BrowserMap
  * @constructor
- * @author Radu Cotescu (cotescu@adobe.com)
+ * @author Radu Cotescu (radu@apache.org)
  * @author Felix Oghină (foghin@adobe.com)
  */
-var BrowserMap = {};
-(function() {
+(function(BrowserMap) {
     'use strict';
 
     var cookiePrefix = 'BMAP_',
@@ -102,7 +101,7 @@ var BrowserMap = {};
                 link = links[i];
                 if (link.rel == 'alternate' && link.media && link.media !== '') {
                     if (onIE7) {
-                        linkHref = BrowserMapUtil.url.qualifyURL(link.href);
+                        linkHref = BrowserMapUtil.Url.qualifyURL(link.href);
                     } else {
                         linkHref = link.href;
                     }
@@ -136,7 +135,7 @@ var BrowserMap = {};
             alternateSiteCandidate = null,
             scoreForCurrentSite = 0,
             currentURL = window.location.href,
-            currentURLParameters = BrowserMapUtil.url.getURLParametersString(currentURL),
+            currentURLParameters = BrowserMapUtil.Url.getURLParametersString(currentURL),
             i,
             j,
             linkScore,
@@ -225,7 +224,7 @@ var BrowserMap = {};
             }),
             i,
             dg,
-            parameters = BrowserMapUtil.url.getURLParametersString(currentURL),
+            parameters = BrowserMapUtil.Url.getURLParametersString(currentURL),
             urlNoParams = currentURL.replace(parameters, '');
         if (alternateSite) {
             newURL = alternateSite.href;
@@ -242,7 +241,7 @@ var BrowserMap = {};
             }
         }
         if (!newURL) {
-            newURL = BrowserMapUtil.url.addSelectorsToURL(urlNoParams, urlSelectors);
+            newURL = BrowserMapUtil.Url.addSelectorsToURL(urlNoParams, urlSelectors);
         }
         if (parameters) {
             newURL += parameters;
@@ -255,21 +254,21 @@ var BrowserMap = {};
      * override parameter.
      */
     BrowserMap.removeOverride = function () {
-        var oCookie = BrowserMapUtil.cookieManager.getCookie('o_' + cookiePrefix + deviceGroupCookieName),
+        var oCookie = BrowserMapUtil.CookieManager.getCookie('o_' + cookiePrefix + deviceGroupCookieName),
             currentURL = window.location.href,
-            parameters = BrowserMapUtil.url.getURLParametersString(currentURL),
+            parameters = BrowserMapUtil.Url.getURLParametersString(currentURL),
             overrideParameter,
             indexOfOverride;
         if (oCookie) {
-            BrowserMapUtil.cookieManager.removeCookie(cookiePrefix + deviceGroupCookieName);
-            BrowserMapUtil.cookieManager.removeCookie(oCookie.name);
+            BrowserMapUtil.CookieManager.removeCookie(cookiePrefix + deviceGroupCookieName);
+            BrowserMapUtil.CookieManager.removeCookie(oCookie.name);
             oCookie.name = cookiePrefix + deviceGroupCookieName;
             oCookie.path = '/';
-            BrowserMapUtil.cookieManager.setCookie(oCookie);
+            BrowserMapUtil.CookieManager.setCookie(oCookie);
         }
         if (parameters) {
             overrideParameter = deviceOverrideParameter + '=' +
-                BrowserMapUtil.url.getValueForParameter(currentURL, deviceOverrideParameter);
+                BrowserMapUtil.Url.getValueForParameter(currentURL, deviceOverrideParameter);
             currentURL = currentURL.replace(parameters, '');
             indexOfOverride = parameters.indexOf(overrideParameter);
             if (indexOfOverride !== -1) {
@@ -305,11 +304,11 @@ var BrowserMap = {};
      */
     BrowserMap.forwardRequest = function () {
         var currentURL = window.location.href,
-            deviceOverride = BrowserMapUtil.url.getValueForParameter(currentURL, deviceOverrideParameter),
+            deviceOverride = BrowserMapUtil.Url.getValueForParameter(currentURL, deviceOverrideParameter),
             detectedDeviceGroups = [],
             urlSelectors = [],
-            oCookie = BrowserMapUtil.cookieManager.getCookie('o_' + cookiePrefix + deviceGroupCookieName),
-            cookie = BrowserMapUtil.cookieManager.getCookie(cookiePrefix + deviceGroupCookieName),
+            oCookie = BrowserMapUtil.CookieManager.getCookie('o_' + cookiePrefix + deviceGroupCookieName),
+            cookie = BrowserMapUtil.CookieManager.getCookie(cookiePrefix + deviceGroupCookieName),
             dgs = [],
             i,
             g,
@@ -321,12 +320,12 @@ var BrowserMap = {};
             parameters,
             newURL;
         if (BrowserMap.isEnabled()) {
-            languageOverride = BrowserMapUtil.url.getValueForParameter(currentURL, languageOverrideParameter);
+            languageOverride = BrowserMapUtil.Url.getValueForParameter(currentURL, languageOverrideParameter);
             if (deviceOverride) {
                 // override detected
                 detectedDeviceGroups = deviceOverride.split(',');
                 if (detectedDeviceGroups.length > 0) {
-                    if (BrowserMapUtil.cookieManager.cookiesEnabled()) {
+                    if (BrowserMapUtil.CookieManager.cookiesEnabled()) {
                         if (!oCookie && !cookie) {
                             // tried to access resource directly with override parameter without passing through detection
                             // run detection code to detect the original device groups
@@ -341,7 +340,7 @@ var BrowserMap = {};
                             }
                             if (deviceOverride !== dgs.join(',')) {
                                 oCookie.value = dgs.join(',');
-                                BrowserMapUtil.cookieManager.setCookie(oCookie);
+                                BrowserMapUtil.CookieManager.setCookie(oCookie);
                             }
                         }
                         else if (!oCookie) {
@@ -349,7 +348,7 @@ var BrowserMap = {};
                             if (cookie.value !== detectedDeviceGroups.join(',')) {
                                 cookie.name = 'o_' + cookie.name;
                                 cookie.path = '/';
-                                BrowserMapUtil.cookieManager.setCookie(cookie);
+                                BrowserMapUtil.CookieManager.setCookie(cookie);
                             }
                         }
                         // store the override
@@ -357,10 +356,10 @@ var BrowserMap = {};
                         cookie.name = cookiePrefix + deviceGroupCookieName;
                         cookie.value = detectedDeviceGroups.join(',');
                         cookie.path = '/';
-                        BrowserMapUtil.cookieManager.setCookie(cookie);
+                        BrowserMapUtil.CookieManager.setCookie(cookie);
                         if (oCookie) {
                             if (oCookie.value == cookie.value) {
-                                BrowserMapUtil.cookieManager.removeCookie(oCookie.name);
+                                BrowserMapUtil.CookieManager.removeCookie(oCookie.name);
                             }
                         }
                     }
@@ -389,12 +388,12 @@ var BrowserMap = {};
                 }
                 // add the device override parameter to links using the same domain if a device override was detected
                 if (deviceOverride && cookie === null && enableForwardingWhenCookiesDisabled) {
-                    domain = BrowserMapUtil.url.getDomainFromURL(window.location.href);
+                    domain = BrowserMapUtil.Url.getDomainFromURL(window.location.href);
                     aTags = document.getElementsByTagName('a');
                     for (i = 0; i < aTags.length; i++) {
                         url = aTags[i].href;
                         if (url && url.indexOf(domain) !== -1) {
-                            parameters = BrowserMapUtil.url.getURLParametersString(url);
+                            parameters = BrowserMapUtil.Url.getURLParametersString(url);
                             if (parameters) {
                                 if (parameters.indexOf(languageOverrideParameter + '=' + deviceOverride) == -1) {
                                     aTags[i].href = url + '&' + deviceOverrideParameter + '=' + deviceOverride;
@@ -423,7 +422,7 @@ var BrowserMap = {};
                 cookie.name = cookiePrefix + deviceGroupCookieName;
                 cookie.value = detectedDeviceGroups.join(',');
                 cookie.path = '/';
-                BrowserMapUtil.cookieManager.setCookie(cookie);
+                BrowserMapUtil.CookieManager.setCookie(cookie);
             }
             newURL = BrowserMap.getNewURL(currentURL, detectedDeviceGroups, urlSelectors);
             if (newURL && currentURL !== newURL) {
@@ -569,4 +568,4 @@ var BrowserMap = {};
 
     return BrowserMap;
 
-})();
+})(window.BrowserMap = window.BrowserMap || {});
