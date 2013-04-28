@@ -51,8 +51,12 @@ module.exports = function(grunt) {
             target: {
                 files: {
                     'target/libs/min/browsermap.min.js': [
-                        'target/libs/browsermap/**/*.js',
-                        'target/libs/externals/**/*.js'
+                        'target/libs/browsermap/bmaputil.js',
+                        'target/libs/browsermap/bmap.js',
+                        'target/libs/externals/modernizr/modernizr.custom.js',
+                        'target/libs/externals/matchMedia/matchMedia.js',
+                        'target/libs/browsermap/probes.js',
+                        'target/libs/browsermap/devicegroups.js'
                     ]
                 }
             }
