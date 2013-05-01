@@ -56,3 +56,19 @@ A `DeviceGroup` object has the following attributes:
 * `isSelector` - a boolean flag which is checked to see if a `DeviceGroup`'s name should be used as a selector or not.
 
 To add a `DeviceGroup` to the `BrowserMap` object, one can use the `BrowserMap.addDeviceGroup(DeviceGroup object)` method. The last `DeviceGroup` added to `BrowserMap` with the same name as a previously existing `DeviceGroup` will be the one which will be stored, which can be useful if one tries to override the default `DeviceGroups`.
+
+## Development
+BrowserMap's own source files are located in `src/main/js`.
+
+The main test file is located in `src/test/js` and the tests are based on [QUnit](http://qunitjs.com/ "QUnit").
+
+The builds are handled with [Grunt](http://gruntjs.com/ "Grunt"). In order to build the project you need to install
+[PhantomJS](http://phantomjs.org/ "PhantomJS"), [Node.js](http://nodejs.org/ "Node.js") and [npm](https://github.com/isaacs/npm "npm").
+Afterwards use `npm` to globally install `grunt-cli` and `jscoverage`:
+
+    npm install -g grunt-cli
+    npm install -g jscoverage
+
+The tests can be run with `grunt test` inside the browsermap folder.
+
+Packaging the app is done with `grunt package`.

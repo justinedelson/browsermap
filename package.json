@@ -11,16 +11,8 @@
     "url": "git@github.com:raducotescu/browsermap.git"
   },
   "author": {
-    "name": "Radu Cotescu"
+    "name": "The Apache DeviceMap team"
   },
-  "contributors": [
-    {
-      "name": "Bertrand Delacretaz"
-    },
-    {
-      "name": "Felix Oghină"
-    }
-  ],
   "license": {
     "type": "Apache License",
     "url": "http://www.apache.org/licenses/LICENSE-2.0"

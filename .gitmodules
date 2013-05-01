@@ -1,3 +1,0 @@
-[submodule "src/main/lib/matchMedia"]
-	path = src/main/lib/matchMedia
-	url = git://github.com/paulirish/matchMedia.js.git
