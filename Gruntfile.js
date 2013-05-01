@@ -17,16 +17,16 @@
  * under the License.
  */
 
-/*global module:false */
-module.exports = function(grunt) {
+/*global module:false,require:false */
+module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        testacular: {
+        karma: {
             unit: {
-                configFile: 'src/test/testacular.conf.js'
+                configFile: 'src/test/karma.conf.js'
             },
             continuous: {
-                configFile: 'src/test/testacular.conf.js',
+                configFile: 'src/test/karma.conf.js',
                 singleRun: true,
                 browsers: ['PhantomJS']
             }
@@ -35,8 +35,8 @@ module.exports = function(grunt) {
             // only check BrowserMap files and Gruntfile.js
             files: {
                 src: [
-                'Gruntfile.js',
-                'src/main/js/*.js'
+                    'Gruntfile.js',
+                    'src/main/js/*.js'
                 ]
             },
             options: {
@@ -56,7 +56,13 @@ module.exports = function(grunt) {
             browsermap: {
                 files: [
                     {src: ['src/main/js/*.js'], dest: 'target/libs/browsermap/', expand: true, flatten: true},
+                    {cwd: 'src/main/resources/demo/', src: ['**'], dest: 'target/demo/', expand: true},
                     {cwd: 'src/main/lib/', src: ['**'], dest: 'target/libs/externals/', expand: true}
+                ]
+            },
+            minified: {
+                files: [
+                    {src: ['target/libs/min/browsermap.min.js'], dest: 'target/demo/js/browsermap.min.js'}
                 ]
             }
         },
@@ -93,8 +99,9 @@ module.exports = function(grunt) {
                     mode: 'zip'
                 },
                 files: [
-                    {src: ['AUTHORS', 'LICENSE', 'README.md'], dest: '.'},
-                    {cwd: 'target/doc', src: ['**'], dest: 'doc/', expand: true},
+                    {src: ['LICENSE', 'NOTICE', 'README.md'], dest: '.'},
+                    {cwd: 'target/demo', src: ['**'], dest: 'demo/', expand: true},
+                    {cwd: 'target/doc/', src: ['**'], dest: 'doc/', expand: true},
                     {cwd: 'target/libs/', src: ['browsermap/**'], dest: 'libs/', expand: true},
                     {cwd: 'target/libs/', src: ['externals/**'], dest: 'libs/', expand: true},
                     {cwd: 'target/libs/min/', src: ['*.js'], dest: 'libs/', expand: true}
@@ -110,10 +117,51 @@ module.exports = function(grunt) {
                 testFiles: ['src/test/resources/*.html']
             }
         },
-        clean: ['target/']
+        clean: ['target/'],
+        demo: {
+            demoFolder: 'target/demo/',
+            templateFile: 'index.html',
+            selectors: [
+                'browser',
+                'highResolutionDisplay',
+                'oldBrowser',
+                'smartphone.highResolutionDisplay',
+                'smartphone',
+                'tablet.highResolutionDisplay',
+                'tablet'
+            ]
+        }
     });
 
-    grunt.loadNpmTasks('gruntacular');
+    grunt.registerTask('demo', 'Provides the demo pages', function() {
+        grunt.task.requires('clean', 'test', 'copy:browsermap', 'minify', 'copy:minified');
+        var data = grunt.config('demo'),
+            evaluatedContent,
+            path = require('path');
+        if (data) {
+            if (!data.demoFolder) {
+                grunt.log.error('No demo folder has been defined (demo.demoFolder).');
+            }
+            if (!data.templateFile) {
+                grunt.log.error('No template file has been defined (demo.templateFile).');
+            }
+            if (!data.selectors || data.selectors.length < 1) {
+                grunt.log.error('No selectors have been defined (demo.selectors).');
+            }
+            var templateFile = path.join(data.demoFolder, data.templateFile);
+            evaluatedContent = grunt.template.process(grunt.file.read(templateFile));
+            grunt.file.write(templateFile, evaluatedContent);
+            for (var i = 0; i < data.selectors.length; i++) {
+                var fileName = data.templateFile.replace('.html', '.' + data.selectors[i] + '.html');
+                grunt.file.write(path.join(data.demoFolder, fileName), evaluatedContent);
+            }
+            grunt.log.writeln('Generated demo site at ' + data.demoFolder);
+        } else {
+            grunt.log.error('Cannot find a configuration for the demo task!');
+        }
+    });
+
+    grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-jsdoc');
@@ -124,6 +172,6 @@ module.exports = function(grunt) {
 
     grunt.registerTask('minify', ['uglify']);
     grunt.registerTask('coverage', ['qunit-cov']);
-    grunt.registerTask('test', ['jshint', 'testacular:continuous', 'coverage']);
-    grunt.registerTask('package', ['clean', 'test', 'copy', 'minify', 'jsdoc', 'compress']);
+    grunt.registerTask('test', ['jshint', 'karma:continuous', 'coverage']);
+    grunt.registerTask('package', ['clean', 'test', 'copy:browsermap', 'minify', 'copy:minified', 'demo', 'jsdoc', 'compress']);
 };
