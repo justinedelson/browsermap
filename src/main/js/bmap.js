@@ -41,6 +41,8 @@
     // Android 4.x phones in landscape view use 42 pixels for displaying the "soft buttons"
     BrowserMap.THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING = 42;
 
+    BrowserMap.VERSION = '<%= pkg.version %>'; // replaced at build time by Grunt
+
     var linkDataDevgroups = 'data-bmap-devgroups';
 
     /**

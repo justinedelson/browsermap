@@ -22,7 +22,9 @@
  */
 
 /*global BrowserMap:false, Modernizr:false */
-BrowserMap.addProbe('Modernizr.touch', function() {
+BrowserMap.addProbe('BrowserMap.version', function() {
+    return BrowserMap.VERSION;
+}).addProbe('Modernizr.touch', function() {
     return Modernizr.touch;
 }).addProbe('Modernizr.csstransforms3d', function() {
     return Modernizr.csstransforms3d;

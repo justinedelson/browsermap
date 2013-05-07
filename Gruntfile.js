@@ -131,6 +131,9 @@ module.exports = function (grunt) {
                 'tablet.highResolutionDisplay',
                 'tablet'
             ]
+        },
+        sourcetemplates: {
+            files: ['target/libs/browsermap/bmap.js']
         }
     });
 
@@ -142,12 +145,15 @@ module.exports = function (grunt) {
         if (data) {
             if (!data.demoFolder) {
                 grunt.log.error('No demo folder has been defined (demo.demoFolder).');
+                return;
             }
             if (!data.templateFile) {
                 grunt.log.error('No template file has been defined (demo.templateFile).');
+                return;
             }
             if (!data.selectors || data.selectors.length < 1) {
                 grunt.log.error('No selectors have been defined (demo.selectors).');
+                return;
             }
             var templateFile = path.join(data.demoFolder, data.templateFile);
             evaluatedContent = grunt.template.process(grunt.file.read(templateFile));
@@ -159,6 +165,32 @@ module.exports = function (grunt) {
             grunt.log.writeln('Generated demo site at ' + data.demoFolder);
         } else {
             grunt.log.error('Cannot find a configuration for the demo task!');
+            return;
+        }
+    });
+
+    grunt.registerTask('sourcetemplates', 'Replaces templates from source files', function() {
+        grunt.task.requires('clean', 'test', 'copy:browsermap');
+        var data = grunt.config('sourcetemplates'),
+            path = require('path'),
+            files,
+            file,
+            content;
+        if (data) {
+            files = data.files;
+            if (!files || !(files instanceof Array)) {
+                grunt.log.error('No files array defined.');
+                return;
+            }
+            for (var i = 0; i < files.length; i++) {
+                file = path.normalize(files[i]);
+                content = grunt.template.process(grunt.file.read(file));
+                grunt.file.write(file, content);
+                grunt.log.writeln('Replaced template variables at ' + file);
+            }
+        } else {
+            grunt.log.error('Cannot find a configuration for the sourcetemplates task!');
+            return;
         }
     });
 
@@ -174,5 +206,6 @@ module.exports = function (grunt) {
     grunt.registerTask('minify', ['uglify']);
     grunt.registerTask('coverage', ['qunit-cov']);
     grunt.registerTask('test', ['jshint', 'karma:continuous', 'coverage']);
-    grunt.registerTask('package', ['clean', 'test', 'copy:browsermap', 'minify', 'copy:minified', 'demo', 'jsdoc', 'compress']);
+    grunt.registerTask('package', ['clean', 'test', 'copy:browsermap', 'sourcetemplates', 'minify', 'copy:minified', 'demo', 'jsdoc',
+        'compress']);
 };
