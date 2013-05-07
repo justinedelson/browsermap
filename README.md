@@ -23,7 +23,7 @@ A small demo is available at [http://raducotescu.github.com/browsermap/index.htm
 * on-demand probing with probes' results cache and cache clearing mechanism;
 * easy mechanism for overriding pre-defined device groups / adding new device groups;
 * three ways of determining the correct URL to which a client should be forwarded, depending on its device group, in order of importance:
-    * usage of `<link rel="alternate" hreflang="<language_code>" media="<device_group_name_list>" href="<alternate_url>" />` tags in BrowserMap enabled pages;
+    * usage of `<link rel="alternate" hreflang="<language_code>" data-bmap-devgroups="<device_group_name_list>" href="<alternate_url>" />` tags in BrowserMap enabled pages;
     * a specific URL defined for each `DeviceGroup` JavaScript object added to the `BrowserMap` JavaScript object (e.g. `http://www.example.com` for `browser`, `http://m.example.com` for `smartphone`);
     * modify the current URL to include a `DeviceGroup` selector, in case none of the previous two methods has been set up (e.g. `http://www.example.com/index.smartphone.html` for the `smartphone` device group);
 * device group override (by using a combined mechanism of a `GET` parameter and cookie storage) so that a client from a certain device group can access the pages designed for a different device group; for clients that do not support cookies, the device group override uses just a `GET` parameter which can optionally be appended to each URL pointing to a resource from the same domain as the current resource.
