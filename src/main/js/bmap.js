@@ -33,16 +33,15 @@
         languageOverrideParameter = 'language',
         enableForwardingWhenCookiesDisabled = false,
         matchRun = false,
-        languageOverride = null;
-
-    // Android 4.x phones in landscape view use 42 pixels for displaying the "soft buttons"
-    BrowserMap.THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING = 42;
-
-    // define private objects
-    var matchedDeviceGroups = {},
+        languageOverride = null,
+        matchedDeviceGroups = {},
         probes = {},
         probeCache = {},
         deviceGroups = {};
+    // Android 4.x phones in landscape view use 42 pixels for displaying the "soft buttons"
+    BrowserMap.THE_ANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING = 42;
+
+    var linkDataDevgroups = 'data-bmap-devgroups';
 
     /**
      * Retrieves the probes Map - useful for outputting debugging information.
@@ -97,10 +96,11 @@
     };
 
     /**
-     * Returns an Array of the alternate sites by analysing the link elements with rel='alternate' and the media attribute not null or
-     * empty.
+     * Returns an Array of the alternate sites by analysing the link elements with rel='alternate' and the data-bmap-devgroups attribute
+     * not null or empty.
      *
-     * @return {Array} an array of alternate sites as hash objects; an empty array if no alternate site is found
+     * @return {Array} an array of alternate sites defined as objects with the <code>id, href, hreflang, devgroups</code> set of
+     *                 attributes; an empty array if no alternate site is found
      */
     BrowserMap.getAllAlternateSites = function () {
         var alternateSites = [],
@@ -109,20 +109,24 @@
             link,
             headElement,
             onIE7 = false,
-            linkHref;
+            linkHref,
+            devgroups;
         onIE7 = navigator.appVersion.indexOf('MSIE 7') !== -1;
         headElement = document.getElementsByTagName('head')[0];
         if (headElement) {
             links = headElement.getElementsByTagName('link');
             for (i = 0; i < links.length; i++) {
                 link = links[i];
-                if (link.rel == 'alternate' && link.media && link.media !== '') {
+                devgroups = link.getAttribute(linkDataDevgroups);
+                if (link.rel == 'alternate' && devgroups && devgroups !== '') {
                     if (onIE7) {
                         linkHref = BrowserMapUtil.Url.qualifyURL(link.href);
                     } else {
                         linkHref = link.href;
                     }
-                    alternateSites.push({'id' : link.id, 'href' : linkHref, 'hreflang' : link.hreflang, 'media' : link.media});
+                    alternateSites.push(
+                        {'id' : link.id, 'href' : linkHref, 'hreflang' : link.hreflang, 'devgroups' : devgroups}
+                    );
                 }
             }
         }
@@ -142,7 +146,7 @@
      *
      * @param {Array} deviceGroups - an array containing the names of the device groups for which to get the best alternate link
      * @param {Function} filter - a callback function that acts as a filter and which must return a boolean; the callback will receive a
-     *      hash object representing an alternate site with the following attributes: "id", "href", "hreflang", "media"
+     *      hash object representing an alternate site with the following attributes: "id", "href", "hreflang", "devgroups"
      * @return {String} the alternate link that matches the most device groups matched by the client
      */
     BrowserMap.getAlternateSite = function (deviceGroups, filter) {
@@ -162,7 +166,7 @@
         }
         for (i = 0; i < alternateSites.length; i++) {
             linkScore = 0;
-            devices = alternateSites[i].media.split(',');
+            devices = alternateSites[i].devgroups.split(',');
             for (j = 0; j < devices.length; j++) {
                 if (deviceGroups.indexOf(devices[j].trim()) !== -1) {
                     linkScore++;

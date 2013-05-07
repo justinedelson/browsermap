@@ -23,9 +23,9 @@ QUnit.begin(function() {
         headElementContent = headElement.innerHTML;
     headElementContent += '\
         <link rel="canonical" href="' + currentURL + '">\
-        <link rel="alternate" media="browser" hreflang="en" href="' + currentURL + '">\
-        <link rel="alternate" media="browser" hreflang="de" href="' + currentURL + '">\
-        <link rel="alternate" media="smartphone" hreflang="en" href="' + currentURL.replace('.html', '.smartphone.html') + '">\
+        <link rel="alternate" data-bmap-devgroups="browser" hreflang="en" href="' + currentURL + '">\
+        <link rel="alternate" data-bmap-devgroups="browser" hreflang="de" href="' + currentURL + '">\
+        <link rel="alternate" data-bmap-devgroups="smartphone" hreflang="en" href="' + currentURL.replace('.html', '.smartphone.html') + '">\
         <meta name="browsermap.enabled" content="false">';
     headElement.innerHTML = headElementContent;
 });
@@ -98,16 +98,16 @@ module('BrowserMap');
 test("getAllAlternateSites", function() {
     var currentURL = window.location.href,
         alternateSites = [
-            {href: currentURL, hreflang : 'en', media : 'browser', id : ''},
-            {href: currentURL, hreflang : 'de', media : 'browser', id : ''},
-            {href: window.location.href.replace(".html", ".smartphone.html"), hreflang : 'en', media : 'smartphone', id : ''}
+            {href: currentURL, hreflang : 'en', devgroups : 'browser', id : ''},
+            {href: currentURL, hreflang : 'de', devgroups : 'browser', id : ''},
+            {href: window.location.href.replace(".html", ".smartphone.html"), hreflang : 'en', devgroups : 'smartphone', id : ''}
         ];
     deepEqual(BrowserMap.getAllAlternateSites(), alternateSites);
 });
 test("getAlternateSite", function() {
     var filter = function(link) {return link.hreflang == 'de'};
     var currentURL = window.location.href;
-    deepEqual(BrowserMap.getAlternateSite(['browser'], filter), {href: currentURL, hreflang : 'de', media : 'browser', id : ''});
+    deepEqual(BrowserMap.getAlternateSite(['browser'], filter), {href: currentURL, hreflang : 'de', devgroups : 'browser', id : ''});
 });
 test("getDeviceGroupsInRankingOrder", function() {
     var expectedDgs = [
